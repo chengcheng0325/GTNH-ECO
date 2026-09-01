@@ -1068,3 +1068,10 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **根因**：AE2U 原版 mergeJob 条件 availableStorage >= usedStorage + newBytes 对 vCPU 恒不成立（onVirtualCPUSubmitJob 把 availableStorage 设为任务字节语义）→ 原版合并路径永不触发。
 - **方案 B（实施）**：submitJob HEAD 注入在 t114g 预检之前加合并分支——isBusy + myLastLink.isStandalone + getFinalMultiOutput().isSameType(job.getOutput()) + 池剩余（getAvailableBytes）>= newBytes(+hyper 10%) → 直接调原版 public mergeJob()；记账：usedExtraStorage += extra、availableStorage += newBytes+extra（保持任务字节语义，池记账 Σ availableStorage 自动正确）；@Unique mergedJob 标志让 RETURN 注入跳过 onVirtualCPUSubmitJob（防重复分配线程槽/vCPU 号）。availableStorage 语义与池记账零改动。
 - **验证**：BUILD SUCCESSFUL；javap 确认 mergeJob 调用 + isBusy/getFinalMultiOutput @Shadow + mergedJob 标志读写；部署两端 SHA256 = 1D968CB22BE4440FDDB1B9EB1313E3666024AB9FA565B68F54C0512057191D36（364843 B，三端一致）；git commit。游戏内验证待用户：下单 A→再下单 A→线程槽不增、输出累计。
+
+## t116b vCPU 合并 UI 打通（用户反馈"字节不够"驱动）
+- **现象**：再下单 A 显示"字节不够"，Merge 按钮不可用。
+- **根因**：ContainerCraftConfirm.cpuMatches 的 busy 合并分支 c.getStorage() >= usedBytes + c.getUsedStorage() 对 vCPU 恒不成立（getStorage=任务字节语义）→ busy vCPU 在确认界面不可选 → Merge 不可点。
+- **修复**：新增 MixinContainerCraftConfirm（server，priority 2000）：@Redirect cpuMatches/onCPUUpdate 的 getStorage/getAvailableStorage 调用 → vCPU 返回 effectiveAvailableStorage（= 控制器池剩余 + 当前任务 usedStorage，ECPUCluster 接口新 default 方法，非 vCPU 返回 -1 走原版）；MixinCraftingGridCache 加 @Redirect（6 参 submitJob 内 getAvailableStorage）——自动选择路径（不点 Merge 直接 Start）同样优先合并 busy vCPU。条件变为 池剩余 >= 新任务字节。
+- **配合 t116**：Merge 提交 target=busy vCPU → submitJob HEAD 注入合并分支（实时池剩余判断）→ 原版 mergeJob。全链路：UI 可选 → 按钮变 Merge → 提交 → 合并 → 不占新线程。
+- **验证**：BUILD SUCCESSFUL；refmap/jar 含 MixinContainerCraftConfirm；部署两端 SHA256 = FF629BECA861087C1422DE71C8A6C64931D5F045E08DD7EAC7EF4EC5CF6FDEB0（366371 B，三端一致）；备份 备份/ECOGTNH-源码备份-2026-09-01-t116b/。游戏内验证待用户。

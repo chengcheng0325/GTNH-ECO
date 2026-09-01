@@ -680,16 +680,70 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         createVirtualCPU();
     }
 
-    /** Disassembles all currently/ previously assembled parts. */
+    /**
+     * t122 (user): KEEP-JOBS teardown for structure invalidation (unformed). In-flight vCPU jobs
+     * are NOT cancelled or destroyed: their materials stay safe inside the AE grid clusters, and
+     * the jobs freeze (the channel's getCPUs() stops exposing them once the controller reference
+     * is released) and RESUME when the machine forms again (scanStructureVolume re-claims the
+     * channel → getCPUs() re-exposes the clusters → the grid scheduler drives them again).
+     * Only the standby vCPU is destroyed; the vCPU number pool is kept (running clusters still
+     * hold numbers). The channel proxy is NOT invalidated — the grid node must stay alive so the
+     * jobs keep their data.
+     */
     protected void disassembleAll() {
-        // t5 F2 (phase B): controller teardown 鈥?destroy the standby vCPU, cancel/destroy every
+        destroyStandbyVCPU();
+        // External thread drives: release the controller reference but keep their clusters/jobs.
+        for (TileEcalThreadDrive core : threadCores) {
+            core.onControllerDisassembledKeepJobs();
+        }
+        for (TileEcalThreadDrive old : prevThreadCores) {
+            if (!threadCores.contains(old)) old.onControllerDisassembledKeepJobs();
+        }
+        // Channel: release the controller reference but DO NOT invalidate the proxy (grid node
+        // stays so in-flight vCPU jobs keep their data; re-form re-claims it via onAssembled).
+        if (channel != null) {
+            channel.onControllerDisassembledKeepProxy();
+        }
+        if (prevChannel != null && prevChannel != channel) prevChannel.onControllerDisassembledKeepProxy();
+        parallelismTotal = 0;
+        totalBytes = 0;
+        // t122: the vCPU number pool is NOT reset — running clusters still hold their numbers.
+        for (TileEcalCellDrive drive : cellDrives) {
+            drive.onDisassembled();
+        }
+        for (TileEcalCellDrive old : prevCellDrives) {
+            if (!cellDrives.contains(old)) old.onDisassembled();
+        }
+        for (TileEcalParallelDrive drive : parallelDrives) {
+            drive.onDisassembled();
+        }
+        for (TileEcalParallelDrive old : prevParallelDrives) {
+            if (!parallelDrives.contains(old)) old.onDisassembled();
+        }
+        for (TileEcalThreadDrive core : threadCores) {
+            core.onDisassembled();
+        }
+        for (TileEcalThreadDrive old : prevThreadCores) {
+            if (!threadCores.contains(old)) old.onDisassembled();
+        }
+        prevCellDrives.clear();
+        prevParallelDrives.clear();
+        prevThreadCores.clear();
+        prevChannel = null;
+    }
+
+    /**
+     * REFUND teardown for machine removal (block broken) / server stopping: cancel every
+     * in-flight cluster (AE2U cancel() refunds the job's materials into the grid via postChange)
+     * then destroy. Clusters whose cancel fails or whose grid is unreachable (disconnected
+     * network) are NOT destroyed — they are adopted as orphans (kept alive with their materials)
+     * and resume/refund automatically once any live grid drives them again.
+     */
+    protected void disassembleAllRefund() {
+        // t5 F2 (phase B): controller teardown — destroy the standby vCPU, cancel/destroy every
         // in-flight cluster per thread core, then notify the grid (no NPE/leak: the M1 destroy
         // mixin routes each destroy to its core's onCPUDestroyed, which unregisters and notifies).
         destroyStandbyVCPU();
-        // t118 (user report): built-in slot clusters must be CANCELLED (AE2U cancel() refunds the
-        // job's materials into the grid via postChange), then destroyed — previously they were only
-        // markDestroyed()+cleared, which swallowed the in-flight job's materials. Same order as the
-        // external thread drives (onControllerDisassembled: cancel → destroy).
         for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinThreadClusters)) {
             cancelAndDestroyBuiltin(cluster);
         }
@@ -731,8 +785,14 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         for (TileEcalThreadDrive old : prevThreadCores) {
             if (!threadCores.contains(old)) old.onDisassembled();
         }
-        if (channel != null) channel.onDisassembled();
-        if (prevChannel != null && prevChannel != channel) prevChannel.onDisassembled();
+        // t122b (user report): the channel proxy is NOT invalidated on machine removal — an
+        // orphaned cluster (refund incomplete at teardown, adopted by EcoaegtnhOrphanClusters)
+        // needs the channel's grid node alive to be driven and refunded once the network is
+        // back; destroying the node here made the orphan unreachable and the materials vanished.
+        // The node stays (the channel block keeps it), so reconnects and rebuilt machines can
+        // drive the refund; the player can remove the channel block itself to fully disconnect.
+        if (channel != null) channel.onControllerDisassembledKeepProxy();
+        if (prevChannel != null && prevChannel != channel) prevChannel.onControllerDisassembledKeepProxy();
         prevCellDrives.clear();
         prevParallelDrives.clear();
         prevThreadCores.clear();
@@ -744,13 +804,35 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
      * controller teardown. destroy() routes through the M1 injectDestroy hook → onClusterReleased
      * (releases the thread slot + vCPU number, idempotent). Mirrors TileEcalThreadDrive.
      * onControllerDisassembled's cancel-then-destroy order.
+     * t122 (user): AE2U cancel() refunds via storeItems() at its tail — when the grid is
+     * unreachable that refund is partial and the cluster's inventory still holds materials.
+     * Destroying such a cluster would swallow them, so a non-empty inventory after cancel() means
+     * the cluster is adopted as an orphan (EcoaegtnhOrphanClusters): any live grid re-drives it,
+     * updateCraftingLogic's isComplete branch retries storeItems() and destroys it once the
+     * inventory is empty — the job refunds automatically on reconnect instead of being swallowed.
      */
     private void cancelAndDestroyBuiltin(CraftingCPUCluster cluster) {
         try {
             cluster.cancel();
         } catch (Exception e) {
-            LOG.warn("Ecal: cancel during disassembly failed for a built-in cluster", e);
+            LOG.warn(
+                "Ecal: cancel failed during teardown — adopting cluster as orphan; it refunds when a grid drives it again",
+                e);
+            ecoaegtnh.EcoaegtnhOrphanClusters.adopt(cluster);
+            return;
         }
+        if (!ECPUCluster.from(cluster)
+            .ecoaegtnh$isInventoryEmpty()) {
+            // t122: cancel()'s storeItems() refund did not complete (grid unreachable) — the
+            // inventory still holds materials. Keep the cluster alive; the isComplete branch of
+            // updateCraftingLogic retries the refund once a grid drives it again.
+            LOG.warn(
+                "Ecal: refund incomplete (grid unreachable) — adopting cluster as orphan; it refunds when the network is back");
+            ecoaegtnh.EcoaegtnhOrphanClusters.adopt(cluster);
+            return;
+        }
+        // Refund complete (the M1 injectCancel hook may already have destroyed an empty cluster;
+        // an explicit destroy is an idempotent fallback).
         ECPUCluster.from(cluster)
             .ecoaegtnh$markDestroyed();
         cluster.destroy();
@@ -759,7 +841,7 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     @Override
     public void onRemoval() {
         super.onRemoval();
-        disassembleAll();
+        disassembleAllRefund();
     }
 
     // ------------------------------------------------------------------
@@ -962,6 +1044,35 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
      */
     public void createVirtualCPU() {
         if (channel == null) return;
+        // t122 (user): re-home built-in orphans whose original channel block is gone (its grid
+        // node is dead, so nothing can drive their refund). This rebuilt/formed machine adopts
+        // them: the live channel then exposes them to the grid (MixinCraftingGridCache) and
+        // updateCraftingLogic's isComplete branch retries the storeItems() refund, so the
+        // materials come back instead of staying locked forever.
+        for (CraftingCPUCluster orphan : ecoaegtnh.EcoaegtnhOrphanClusters.all()) {
+            MTEEcalArray old = ECPUCluster.from(orphan)
+                .ecoaegtnh$getVirtualCPUOwner();
+            if (old == null || old == this) {
+                continue;
+            }
+            TileEcalMEChannel oldChannel = old.getChannel();
+            if (oldChannel != null && oldChannel.getProxy() != null
+                && oldChannel.getProxy()
+                    .getNode() != null) {
+                continue; // the original channel is still alive — it drives the refund itself
+            }
+            ECPUCluster.from(orphan)
+                .ecoaegtnh$setVirtualCPUOwner(this);
+            // T-M2 (t122 audit): drop the old controller's vCPU number so it cannot collide with
+            // this controller's renumbered pool (display/registry level only).
+            ECPUCluster.from(orphan)
+                .ecoaegtnh$setVCPUId(0);
+            LOG.warn(
+                "Ecal: orphan vCPU re-homed to rebuilt controller ({},{},{}) — its materials refund through this grid",
+                getBaseMetaTileEntity().getXCoord(),
+                getBaseMetaTileEntity().getYCoord(),
+                getBaseMetaTileEntity().getZCoord());
+        }
         if (totalBytes <= 0) {
             destroyStandbyVCPU();
             return;
@@ -1222,6 +1333,20 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             } catch (Exception e) {
                 LOG.warn("Ecal: cancel on slot-exhausted cluster failed", e);
             }
+            // T-H1 (t122 audit): same inventory guard as cancelAndDestroyBuiltin — cancel()'s
+            // storeItems() refund can be partial when the grid is unreachable; destroying a
+            // non-empty inventory would swallow the remaining materials. Adopt as an orphan
+            // instead (it refunds once a grid drives it again).
+            if (!ECPUCluster.from(cluster)
+                .ecoaegtnh$isInventoryEmpty()) {
+                LOG.warn("Ecal: refund incomplete (grid unreachable) — adopting slot-exhausted cluster as orphan");
+                ecoaegtnh.EcoaegtnhOrphanClusters.adopt(cluster);
+                if (virtualCPU == cluster) {
+                    virtualCPU = null;
+                }
+                createVirtualCPU();
+                return;
+            }
             ECPUCluster.from(cluster)
                 .ecoaegtnh$markDestroyed();
             cluster.destroy();
@@ -1370,20 +1495,28 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         if (worldTime % 5 == 0) {
             recalculateIdlePower();
         }
-        // M7 (audit): channel down for ≥100 ticks with in-flight jobs → the jobs neither progress
-        // (updateCraftingLogic stops being driven) nor cancel, locking materials, thread slots and
-        // vCPU numbers. Auto-cancel + destroy (refund materials) after the grace period.
+        // t122 (user): channel down no longer cancels anything — in-flight vCPU jobs stay frozen
+        // (updateCraftingLogic's isActive redirect pauses them) and RESUME automatically on
+        // reconnect; their materials stay safe inside the AE grid clusters. Log the state change
+        // once per transition for observability.
         if (worldTime % 20 == 0) {
-            boolean active = channel != null && channel.getProxy() != null
-                && channel.getProxy()
+            // T-L1 (t122 audit): no channel (block removed, structure not yet re-checked) — skip
+            // the state machine instead of logging a spurious "channel down".
+            if (channel == null) {
+                channelDownTick = -1;
+            } else {
+                boolean active = channel.getProxy() != null && channel.getProxy()
                     .isActive();
-            if (active) {
-                channelDownTick = -1;
-            } else if (channelDownTick < 0) {
-                channelDownTick = worldTime;
-            } else if (worldTime - channelDownTick >= 100) {
-                channelDownTick = -1;
-                cancelAllInFlight("channel down");
+                if (active) {
+                    if (channelDownTick >= 0) {
+                        LOG.info("Ecal: ME channel back — in-flight vCPU jobs resume");
+                    }
+                    channelDownTick = -1;
+                } else if (channelDownTick < 0) {
+                    channelDownTick = worldTime;
+                    LOG.warn(
+                        "Ecal: ME channel down — in-flight vCPU jobs stay frozen and resume on reconnect (materials are kept)");
+                }
             }
         }
         // Phase B: replenish the standby vCPU on the structure-recheck cadence (plan 搂7.4 鈥?the

@@ -1,73 +1,72 @@
 # ECO AE Extension (GTNH)
 
-GTNH 1.7.10 addon：把 NovaEngineering-ECOAEExtension 的 E-Storage Array 概念移植为
-GT5-Unofficial 多方块 + AE2U 存储集成。
+**ECO AE Extension** is a GTNH (Minecraft 1.7.10) addon that brings the E-Storage Array and
+E-Calculator concepts to GT5-Unofficial multiblocks with full Applied Energistics 2 (Unofficial)
+integration.
 
-> 本目录是**独立的 git 仓库**（开源发布用），位于工作区 `GTNH-ECO/ECOGTNH/`；
-> 工作区其余目录（参考/素材/模型/其他项目）为本地资料，不随本仓库发布。
+**ECO AE Extension** 是一个 GTNH（MC 1.7.10）附属模组，将 E-Storage Array 与 E-Calculator 的概念
+以 GT5-Unofficial 多方块 + AE2U 深度集成的形式带入 GTNH。
 
-- Mod ID：`ecoaegtnh`
-- 依赖：GregTech 5-Unofficial（`gregtech`）、Applied Energistics 2 Unofficial（`appliedenergistics2`）、StructureLib（`structurelib`）
-- 参考设计文档：`docs/DESIGN.md`（架构）、`docs/t3-implementation-notes.md`（t3 实现记录）
+| | |
+|---|---|
+| Mod ID | `ecoaegtnh` |
+| Dependencies | GregTech 5-Unofficial (`gregtech`), Applied Energistics 2 Unofficial (`appliedenergistics2`), StructureLib (`structurelib`) |
+| Branch `master` | GTNH **2.9.0-beta-2** (AE2U rv3-beta-1000, GT5U 5.09.54.20) |
+| Branch `284` | GTNH **2.8.4** (AE2U rv3-beta-695, GT5U 5.09.51.482) |
 
-## 内容
+---
 
-- **ECO E-Storage Array（L4 / L6 / L9）**：GT 多方块控制器，驱动列 1–12 单元可扩展；
-  L4 可用 A 级盘、L6 可用 A/B 级盘、L9 可用 A/B/C 级盘。
-- **部件方块**：存储阵列外壳（casing）、驱动盘位（drive bay）、电容 A/B/C（capacitance）、
-  通风口（vent）、ME 总线（ME bus）。
-- **存储盘**：物品/流体/源质盘共 27 种（9 尺寸 × 3 类型，256k–16384M；源质盘需 ThaumicEnergistics 加载）。
-- **GUI**：控制器右键打开存储统计面板（结构状态、盘位数、驱动列数、总能量）。
+## Features 功能
 
-## 构建
+### 🧮 E-Calculator Array（计算阵列 / ECO 计算）
+- **vCPU 体系**：AE 网格中的虚拟合成 CPU——任务不再占用物理合成方块，由计算阵列提供
+  "线程槽"（内置槽 + 线程核心驱动器）并动态分配 vCPU 编号。
+- **字节池记账**：任务字节实时扣减共享池（cell drive 容量），10% 红线保护、超频模式
+  5% 红线；超线程槽的 +10% 虚拟预留不虚增池占用（M2 修复）。
+- **任务合并（t116）**：相同输出的重复订单自动合并到正在运行的 vCPU，不占新线程。
+- **故障安全**：断网时任务冻结不取消、网络恢复自动续跑；机器未成形（拆结构）时任务
+  数据保留、重新成形自动恢复；取消失败的材料进入"孤儿"保护并自动退款（t122 系列）。
+- 升级树（upgrade tree）解锁线程核心档位；停服 / 卸载自动退款在途材料（H2）。
 
-要求：JDK 8（编译工具链）+ JDK 21（Gradle 守护进程）；GTNH Gradle 模板（RetroFuturaGradle）。
+### 🗄️ E-Storage Array（存储阵列 / ECO 存储）
+- L4 / L6 / L9 三档多方块控制器，驱动器列 1–2 单元可扩展；
+  L4 支持 A 级盘、L6 支持 A/B、L9 支持 A/B/C。
+- 存储盘：物品 / 流体 / 源质共 27 种（9 档容量 × 3 类型，256k–16384M；
+  源质盘需要 ThaumicEnergistics）。
+- 控制器 GUI：结构状态、盘位、驱动器列、总容量统计（20t 缓存，高盘位不卡顿）。
+- UNIVERSE 盘容量饱和钳制修复（H1），百分比统计饱和（M6）。
+
+---
+
+## Building 构建
+
+Requirements: JDK 8 (compile toolchain) + JDK 21 (Gradle daemon); GTNH Gradle template
+(RetroFuturaGradle).
 
 ```powershell
-# 环境变量（示例）
-$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"   # 守护进程用 21+
-# 编译 + 打包
+# Environment example
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"   # daemon needs 21+
+
+# Compile + package
 .\gradlew.bat build
-# 产物
+
+# Artifact
 #   build/libs/ecoaegtnh.jar
-#   build/libs/ecoaegtnh-dev.jar（开发用，含依赖）
 ```
 
-> **本地依赖说明**（不入库，clone 后需自行准备）：
-> - `libs/Thaumcraft-1.7.10-4.2.3.5.jar`：从 GTNH 整合包 mods 目录复制（`dependencies.gradle` 以 compileOnly 引用，仅用于编译源质盘相关代码）。
-> - `local-maven/`：本机构建用的 RFG 插件本地重定向（`settings.gradle` 引用；不存在时 Gradle 会回退到 GTNH Maven，一般可忽略）。
+For the 2.8.4 version check out the `284` branch (its build.gradle pins the 695 dependency set).
 
-首次构建会通过 GTNH nexus 拉取依赖；如网络受限，可走本地代理
-（见 `docs/ENVIRONMENT.md`：`http://127.0.0.1:7890`，`gradle.properties` 已配
-`systemProp.http.proxyHost/Port`）。
+## Installation 安装
 
-## 安装到 GTNH
+1. 将 `build/libs/ecoaegtnh.jar` 放入 `mods/`（服务端与客户端一致）。
+2. 依赖：GT5U、AE2U、StructureLib（版本见分支说明）。
+3. 客户端/服务端必须使用同一版本的 jar（SHA256 一致）。
 
-1. 构建出 `build/libs/ecoaegtnh.jar`。
-2. 把 jar 放入 GTNH 整合包的 `mods/` 目录（与 `gregtech`、`appliedenergistics2`、
-   `structurelib` 等一起）。
-3. 启动游戏；主菜单 Mod 列表应出现 "ECO AE Extension (GTNH)"。
+## License
 
-## 游戏内测试步骤
+[GNU Lesser General Public License v3.0](LICENSE) (LGPL-3.0)
 
-1. **获取物品**：创造模式打开 "ECO AE Extension" 标签页（或 /give），取出
-   控制器 L4、外壳、驱动盘位、电容 A、通风口、ME 总线、物品盘 16M 各若干。
-2. **搭结构**（控制器面朝外，驱动列向西扩展）：
-   - 固定主体 2×3×2：控制器在 (0,0,0)，ME 总线在 (1,0,1)，其余 10 格外壳；
-   - 驱动列：每单元 x=-n 放 3 个驱动盘位（z=0, y=-1/0/1）、2 个电容（z=1, y=±1）、
-     1 个通风口（z=1, y=0）；
-   - 列末端整面 6 格外壳封口（ASCII 图见 `docs/DESIGN.md` §2.5）。
-3. **成型检查**：控制器 GUI（右键）显示 "Structure: Valid"；NEI 结构预览可用
-   （若已实现）。
-4. **接 AE 网络**：ME 总线用智能线缆连到 ME 控制器/网络。
-5. **放盘**：把存储盘放入驱动盘位（潜行右键或 GUI），打开 ME 终端应能看到盘内内容
-   并可存取；能量条随电容充放电变化。
-6. **扩展**：再加 1–2 个驱动列单元，结构自动重检（列数显示应更新）。
+---
 
-## 许可说明
-
-本项目（代码与原创贴图）以 **GNU GPL-3.0** 发布，详见根目录 `LICENSE`。
-
-- 设计概念参考 [NovaEngineering-ECOAEExtension](https://github.com/sddsd2332/NovaEngineering-ECOAEExtension)（GPL-3.0）。
-- 本仓库所有贴图均为**原创程序化生成**（见 `src/main/resources/assets/ecoaegtnh/textures/README.txt` 与 `tools/gen-textures.ps1`），未复用参考仓库素材。
-
+*Documentation, design notes and the implementation log stay private; this repository publishes
+the source code only.*

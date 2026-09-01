@@ -73,10 +73,14 @@ public class TileEcalMEChannel extends TileEcalPart implements IGridProxyable, I
 
     /**
      * Crafting CPU clusters this channel exposes to the AE grid: the controller's thread-core CPUs
-     * + standby vCPU (plan §7.3). Empty while not operational.
+     * + standby vCPU (plan §7.3). Empty while not assembled (controller reference released).
+     * t122 (user): the isOperational() gate was REMOVED — an unformed controller (structure
+     * invalid) must keep exposing its clusters so in-flight jobs either keep running or freeze
+     * with their data intact and resume when the machine forms again. Releasing the controller
+     * reference (onControllerDisassembledKeepProxy) is what stops the exposure on teardown.
      */
     public List<CraftingCPUCluster> getCPUs() {
-        if (!isOperational() || controller == null) return Collections.emptyList();
+        if (controller == null) return Collections.emptyList();
         return controller.getClusterList();
     }
 
@@ -164,22 +168,25 @@ public class TileEcalMEChannel extends TileEcalPart implements IGridProxyable, I
         proxy.invalidate();
     }
 
+    /**
+     * t122 (user): controller teardown that KEEPS the grid connection — releases the controller
+     * reference (so getCPUs() stops exposing the clusters → jobs freeze with their data) but does
+     * NOT invalidate the proxy: the grid node must stay alive so the in-flight vCPU jobs keep
+     * their materials and resume when the machine forms again.
+     */
+    public void onControllerDisassembledKeepProxy() {
+        connected = false;
+        super.onDisassembled();
+    }
+
     @Override
     public void updateEntity() {
         super.updateEntity();
-        if (worldObj == null || worldObj.isRemote) return;
-        // Debounced: follow the controller's operational state (proxy joins/leaves the grid).
-        if ((worldObj.getTotalWorldTime() & 7) == 0) { // every 8 ticks
-            boolean operational = isOperational();
-            if (operational != connected) {
-                connected = operational;
-                if (operational) {
-                    proxy.onReady();
-                } else {
-                    proxy.invalidate();
-                }
-            }
-        }
+        // t122 (user): the former every-8-tick operational debounce (which invalidated the proxy
+        // whenever the controller was unformed/disabled) is REMOVED — it tore the grid node out
+        // from under in-flight vCPU jobs, destroying their data when the machine was unformed.
+        // The proxy now follows only the tile's own lifecycle (onAssembled / onDisassembled /
+        // invalidate / chunk unload), so unforming keeps the jobs alive.
     }
 
     @Override

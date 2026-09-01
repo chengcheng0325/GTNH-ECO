@@ -21,6 +21,7 @@ import appeng.me.cache.CraftingGridCache;
 import appeng.me.cluster.implementations.CraftingCPUCluster;
 import ecoaegtnh.ecalculator.ECPUCluster;
 import ecoaegtnh.ecalculator.EcoTimeRecorder;
+import ecoaegtnh.metatileentity.MTEEcalArray;
 import ecoaegtnh.tile.ecalculator.TileEcalMEChannel;
 
 /**
@@ -59,6 +60,38 @@ public abstract class MixinCraftingGridCache {
                 if (cpu.getLastCraftingLink() != null) {
                     this.addLink((CraftingLink) cpu.getLastCraftingLink());
                 }
+            }
+        }
+        // t122 (user): orphaned built-in clusters (their controller was removed while the grid
+        // was unreachable — see EcoaegtnhOrphanClusters) are re-adopted by a live grid, so the
+        // isComplete branch of updateCraftingLogic retries the storeItems() refund and destroys
+        // them — the materials come back instead of being swallowed. Only orphans whose owner
+        // channel is still grid-connected are driven here; orphans whose channel block is gone
+        // are re-homed by a rebuilt controller (MTEEcalArray.createVirtualCPU).
+        for (final CraftingCPUCluster orphan : ecoaegtnh.EcoaegtnhOrphanClusters.all()) {
+            final MTEEcalArray owner = ECPUCluster.from(orphan)
+                .ecoaegtnh$getVirtualCPUOwner();
+            if (owner == null) {
+                continue; // thread-drive clusters are re-exposed via channel.getCPUs() instead
+            }
+            final TileEcalMEChannel channel = owner.getChannel();
+            if (channel == null || channel.getProxy() == null
+                || channel.getProxy()
+                    .getNode() == null) {
+                continue; // channel gone — wait for a rebuilt machine to re-home the orphan
+            }
+            // T-M1 (t122 audit): only drive orphans whose channel node belongs to THIS grid — a
+            // live node in another grid would cross-drive the orphan (double drive / wrong-grid
+            // execution). Same-network multi-controller stays safe (one grid cache per grid).
+            if (channel.getProxy()
+                .getNode()
+                .getGrid() != this.grid) {
+                continue;
+            }
+            this.craftingCPUClusters.add(orphan);
+
+            if (orphan.getLastCraftingLink() != null) {
+                this.addLink((CraftingLink) orphan.getLastCraftingLink());
             }
         }
     }

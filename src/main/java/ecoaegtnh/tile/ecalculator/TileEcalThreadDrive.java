@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import appeng.me.cluster.implementations.CraftingCPUCluster;
 import ecoaegtnh.ecalculator.ECPUCluster;
+import ecoaegtnh.metatileentity.MTEEcalArray;
 
 /**
  * t35: E-Calculator thread-core drive tile (线程核心驱动器) — 1 slot holding an
@@ -113,16 +114,92 @@ public class TileEcalThreadDrive extends TileEcalPart implements IInventory {
         LOG.info("Ecal cluster destroyed: threadDrive=({},{},{}), remaining={}", xCoord, yCoord, zCoord, cpus.size());
     }
 
-    /** Controller teardown (t5 F2): cancel + destroy every in-flight cluster. */
+    /**
+     * Controller teardown (t5 F2): cancel + destroy every in-flight cluster (refund mode — used
+     * when the machine block is removed or the server stops). t122 (user): a cluster whose cancel
+     * fails or whose refund did not complete (grid unreachable — its inventory still holds
+     * materials) is NEVER destroyed — it stays in this drive's cpus list (strong reference), and
+     * when the machine is rebuilt the controller re-claims this drive (scanStructureVolume), the
+     * channel re-exposes the cluster and updateCraftingLogic's isComplete branch retries the
+     * storeItems() refund and destroys it — the materials come back instead of being swallowed.
+     */
     public void onControllerDisassembled() {
         for (CraftingCPUCluster cpu : new ArrayList<>(cpus)) {
             try {
                 cpu.cancel();
             } catch (Exception e) {
-                LOG.warn("Ecal: cancel during disassembly failed for a cluster", e);
+                LOG.warn(
+                    "Ecal: cancel failed during teardown — cluster kept on drive ({},{},{}); it refunds when the machine is rebuilt / network is back",
+                    xCoord,
+                    yCoord,
+                    zCoord,
+                    e);
+                continue;
+            }
+            if (!ECPUCluster.from(cpu)
+                .ecoaegtnh$isInventoryEmpty()) {
+                // t122: cancel()'s storeItems() refund did not complete (grid unreachable) — the
+                // inventory still holds materials; keep the cluster on this drive.
+                LOG.warn(
+                    "Ecal: refund incomplete (grid unreachable) — cluster kept on drive ({},{},{}); it refunds when the machine is rebuilt / network is back",
+                    xCoord,
+                    yCoord,
+                    zCoord);
+                continue;
             }
             cpu.destroy(); // routes via M1 injectDestroy → onCPUDestroyed (removes + notifies)
         }
+    }
+
+    /**
+     * t122 (user): controller teardown that KEEPS the jobs — used when the structure becomes
+     * invalid (unformed). The clusters stay in this drive's cpus list (strong reference, so the
+     * job data is safe) and are NOT cancelled/destroyed; they freeze (the channel stops exposing
+     * them) and resume when the machine forms again.
+     */
+    public void onControllerDisassembledKeepJobs() {
+        // No cancel / destroy — in-flight jobs and their materials are kept alive.
+    }
+
+    /**
+     * T-H2 (t122 audit): when this drive tile goes away (block broken / chunk GC), clusters
+     * kept in the cpus list would be lost with the tile object — including teardown orphans
+     * (refund incomplete) AND still-running jobs (their materials are in the cluster inventory).
+     * Adopt every non-empty cluster as an orphan (with the controller reference if still
+     * reachable) so the orphan machinery keeps it alive and refunds/completes it later: a live
+     * channel drives it (isComplete → storeItems refund, or the running job just continues and
+     * completes), and a dead channel waits for re-homing by a rebuilt machine (createVirtualCPU).
+     */
+    private void protectOrphanedClusters() {
+        for (CraftingCPUCluster cpu : new ArrayList<>(cpus)) {
+            if (ECPUCluster.from(cpu)
+                .ecoaegtnh$isInventoryEmpty()) {
+                continue; // fully refunded or an empty standby — nothing to protect
+            }
+            final MTEEcalArray owner = controller; // may be null (already disassembled)
+            if (owner != null) {
+                ECPUCluster.from(cpu)
+                    .ecoaegtnh$setVirtualCPUOwner(owner);
+            }
+            ecoaegtnh.EcoaegtnhOrphanClusters.adopt(cpu);
+            LOG.warn(
+                "Ecal: thread drive ({},{},{}) removed with un-refunded cluster — adopted as orphan",
+                xCoord,
+                yCoord,
+                zCoord);
+        }
+    }
+
+    @Override
+    public void invalidate() {
+        protectOrphanedClusters();
+        super.invalidate();
+    }
+
+    @Override
+    public void onChunkUnload() {
+        protectOrphanedClusters();
+        super.onChunkUnload();
     }
 
     /** markDirty without a block re-render (M1 markDirty redirect target). */

@@ -62,6 +62,16 @@ public interface ECPUCluster {
     /** Owner controller while the cluster is an unassigned standby vCPU. */
     void ecoaegtnh$setVirtualCPUOwner(@Nullable MTEEcalArray virtualCPUOwner);
 
+    /** t122: the owner controller of a standby/built-in cluster (null for thread-drive clusters). */
+    @Nullable
+    MTEEcalArray ecoaegtnh$getVirtualCPUOwner();
+
+    /**
+     * t122: whether the cluster's MECraftingInventory is empty — used after cancel() to detect an
+     * incomplete refund (grid unreachable): a non-empty inventory means materials are still held.
+     */
+    boolean ecoaegtnh$isInventoryEmpty();
+
     /** t114i: vCPU number from the controller's smallest-available pool (0 while standby). */
     int ecoaegtnh$getVCPUId();
 

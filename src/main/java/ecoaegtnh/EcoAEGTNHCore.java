@@ -213,12 +213,24 @@ public class EcoAEGTNHCore {
     /**
      * H2 (audit): server stopping — cancel every in-flight vCPU job (refunds materials into the
      * grid). Dispatched by FML's @Mod.EventHandler (no EventBus reflection, safe on the server).
+     * T-H3 (t122 audit): orphaned clusters (adopted when their controller was removed while the
+     * grid was unreachable) hold materials in the static registry — the grid is still alive at
+     * this point, so refund them too; the isComplete branch of updateCraftingLogic destroys each
+     * orphan once its inventory is empty.
      */
     @EventHandler
     public void onServerStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
         for (ecoaegtnh.metatileentity.MTEEcalArray controller : ecoaegtnh.EcoaegtnhLifecycleHooks.activeControllers()) {
             if (controller.getBaseMetaTileEntity() != null) {
                 controller.cancelAllInFlight("server stopping");
+            }
+        }
+        for (appeng.me.cluster.implementations.CraftingCPUCluster orphan : ecoaegtnh.EcoaegtnhOrphanClusters.all()) {
+            try {
+                orphan.cancel();
+            } catch (Exception e) {
+                org.apache.logging.log4j.LogManager.getLogger("ECOAEGTNH")
+                    .warn("Ecal: orphan cancel during server stopping failed", e);
             }
         }
     }

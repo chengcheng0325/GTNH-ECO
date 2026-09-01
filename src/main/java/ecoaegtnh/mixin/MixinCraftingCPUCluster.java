@@ -314,6 +314,9 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
 
     @Inject(method = "destroy", at = @At("HEAD"), cancellable = true)
     private void ecoaegtnh$injectDestroy(final CallbackInfo ci) {
+        // t122: a destroyed orphan (adopted while its controller was removed on a dead grid)
+        // leaves the registry — self-cleanup, idempotent.
+        ecoaegtnh.EcoaegtnhOrphanClusters.release((CraftingCPUCluster) (Object) this);
         // M1 (audit): vanilla destroy() body (which calls CraftingNotificationManager.unregister)
         // is skipped for owner/standby clusters below — unregister here instead; List.remove is
         // idempotent so external thread-core clusters (vanilla body still runs) are unaffected.
@@ -463,6 +466,18 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         if (channel != null) {
             this.machineSrc = new MachineSource(channel);
         }
+    }
+
+    @Unique
+    @Override
+    public MTEEcalArray ecoaegtnh$getVirtualCPUOwner() {
+        return this.ecoaegtnh$virtualCPUOwner;
+    }
+
+    @Unique
+    @Override
+    public boolean ecoaegtnh$isInventoryEmpty() {
+        return this.inventory == null || this.inventory.isEmpty();
     }
 
     @Unique

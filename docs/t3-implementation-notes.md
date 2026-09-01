@@ -1075,3 +1075,8 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **修复**：新增 MixinContainerCraftConfirm（server，priority 2000）：@Redirect cpuMatches/onCPUUpdate 的 getStorage/getAvailableStorage 调用 → vCPU 返回 effectiveAvailableStorage（= 控制器池剩余 + 当前任务 usedStorage，ECPUCluster 接口新 default 方法，非 vCPU 返回 -1 走原版）；MixinCraftingGridCache 加 @Redirect（6 参 submitJob 内 getAvailableStorage）——自动选择路径（不点 Merge 直接 Start）同样优先合并 busy vCPU。条件变为 池剩余 >= 新任务字节。
 - **配合 t116**：Merge 提交 target=busy vCPU → submitJob HEAD 注入合并分支（实时池剩余判断）→ 原版 mergeJob。全链路：UI 可选 → 按钮变 Merge → 提交 → 合并 → 不占新线程。
 - **验证**：BUILD SUCCESSFUL；refmap/jar 含 MixinContainerCraftConfirm；部署两端 SHA256 = FF629BECA861087C1422DE71C8A6C64931D5F045E08DD7EAC7EF4EC5CF6FDEB0（366371 B，三端一致）；备份 备份/ECOGTNH-源码备份-2026-09-01-t116b/。游戏内验证待用户。
+
+## t116c/t116d vCPU 合并问题修复（用户实测驱动）
+- **t116c（字节不减少）**：getAvailableBytes() 只统计外置线程驱动器，内置槽（builtinThreadClusters/HyperClusters）任务字节未计入池占用 → 内置线程下单后池剩余不扣减。修复：getAvailableBytes() 追加统计两个 builtin 列表（availableStorage 任务字节语义一致）。
+- **t116d（红色/不可选）**：用户实测 CPU 列表 busy vCPU 红色、点不了。根因：cpuMatches 在**客户端容器实例**也执行，客户端 status 行由同步包 NBT 重建（serverCluster=null）→ 原 @Redirect 经 getServerCluster() 取 cluster 失效 → fallback 原版任务字节 → busy 合并条件恒假。修复：MixinCraftingCPUStatus 增加 ecEffStorage（vCPU 有效字节 = 池剩余+任务已用，服务端构造时算好，writeToNBT/NBT 构造同步，客户端读回）；MixinContainerCraftConfirm 的 cpuMatches @Redirect 改读 status 自身字段（ECPUStatus.isVCPU/getEffectiveStorage），不再依赖 serverCluster；MixinContainerCraftConfirm 从 server 组移到双端 mixins 组（客户端也要跑）。
+- **验证**：BUILD SUCCESSFUL；部署两端 SHA256 = 556650917268654BB8D32205E21844CC67AB4E6CFBA379A3B85C276D8358AEF2（366709 B，三端一致）；备份 备份/ECOGTNH-源码备份-2026-09-01-t116c/。待用户游戏内复测：busy vCPU 应可选（白色）→ Merge 按钮 → 点击合并。

@@ -1,72 +1,109 @@
 # ECO AE Extension (GTNH)
 
-**ECO AE Extension** is a GTNH (Minecraft 1.7.10) addon that brings the E-Storage Array and
-E-Calculator concepts to GT5-Unofficial multiblocks with full Applied Energistics 2 (Unofficial)
-integration.
-
-**ECO AE Extension** 是一个 GTNH（MC 1.7.10）附属模组，将 E-Storage Array 与 E-Calculator 的概念
-以 GT5-Unofficial 多方块 + AE2U 深度集成的形式带入 GTNH。
+**ECO AE Extension** 是一个 GTNH（Minecraft 1.7.10）附属模组：将 **E-Storage Array（存储阵列）**
+与 **E-Calculator（可扩展计算子系统）** 两大多方块机器以 GT5-Unofficial 多方块 + Applied
+Energistics 2 (Unofficial) 深度集成的形式带入 GTNH。
 
 | | |
 |---|---|
 | Mod ID | `ecoaegtnh` |
-| Dependencies | GregTech 5-Unofficial (`gregtech`), Applied Energistics 2 Unofficial (`appliedenergistics2`), StructureLib (`structurelib`) |
-| Branch `master` | GTNH **2.9.0-beta-2** (AE2U rv3-beta-1000, GT5U 5.09.54.20) |
-| Branch `284` | GTNH **2.8.4** (AE2U rv3-beta-695, GT5U 5.09.51.482) |
+| 依赖 | GregTech 5-Unofficial (`gregtech`)、Applied Energistics 2 Unofficial (`appliedenergistics2`)、StructureLib (`structurelib`) |
+| 分支 `master` | GTNH **2.9.0-beta-2**（AE2U rv3-beta-1000 / GT5U 5.09.54.20） |
+| 分支 `284` | GTNH **2.8.4**（AE2U rv3-beta-695 / GT5U 5.09.51.482） |
+| 语言 | 简体中文 / English（[README_EN.md](README_EN.md)） |
 
 ---
 
-## Features 功能
+## 🧮 ECO 可扩展计算子系统（E-Calculator Array）
 
-### 🧮 E-Calculator Array（计算阵列 / ECO 计算）
-- **vCPU 体系**：AE 网格中的虚拟合成 CPU——任务不再占用物理合成方块，由计算阵列提供
-  "线程槽"（内置槽 + 线程核心驱动器）并动态分配 vCPU 编号。
-- **字节池记账**：任务字节实时扣减共享池（cell drive 容量），10% 红线保护、超频模式
-  5% 红线；超线程槽的 +10% 虚拟预留不虚增池占用（M2 修复）。
-- **任务合并（t116）**：相同输出的重复订单自动合并到正在运行的 vCPU，不占新线程。
-- **故障安全**：断网时任务冻结不取消、网络恢复自动续跑；机器未成形（拆结构）时任务
-  数据保留、重新成形自动恢复；取消失败的材料进入"孤儿"保护并自动退款（t122 系列）。
-- 升级树（upgrade tree）解锁线程核心档位；停服 / 卸载自动退款在途材料（H2）。
+GT 多方块控制器，**由 ME 网络供电（无需 GT 能量舱）、无需维护**。结构由头部 + 1–12 个
+扩展段组成：前侧 2 晶阵驱动器 + 1 传输总线，后侧 2 并行核心驱动器 + 1 线程核心驱动器。
+手持 N 个（1–12）控制器物品可投影/建造 N 段结构。
 
-### 🗄️ E-Storage Array（存储阵列 / ECO 存储）
-- L4 / L6 / L9 三档多方块控制器，驱动器列 1–2 单元可扩展；
-  L4 支持 A 级盘、L6 支持 A/B、L9 支持 A/B/C。
-- 存储盘：物品 / 流体 / 源质共 27 种（9 档容量 × 3 类型，256k–16384M；
-  源质盘需要 ThaumicEnergistics）。
-- 控制器 GUI：结构状态、盘位、驱动器列、总容量统计（20t 缓存，高盘位不卡顿）。
-- UNIVERSE 盘容量饱和钳制修复（H1），百分比统计饱和（M6）。
+### 部件与物品
+
+| 类别 | 物品 |
+|---|---|
+| 结构部件 | 计算子系统外壳、晶阵驱动器、并行核心驱动器、线程核心驱动器、ME 矩阵通讯接口、超导晶阵传输总线 |
+| **闪存晶阵**（字节池） | 256k / 1024k / 4096k / 16M / 64M / 256M / 1024M / 4096M / 16384M / **奇点**（无限）——放入晶阵驱动器计入字节池 |
+| **并行核心**（并行度） | 1 / 4 / 16 / 64 / 256 / 1024 / 4096 / 16384 / 65536——放入并行核心驱动器 |
+| **线程核心**（线程槽） | 普通 1 / 4 / 16 / 32 / 64；超线程 4 / 8 / 16（超线程槽 +10% 虚拟容量，超频模式免费）——放入线程核心驱动器 |
+
+### vCPU 体系（核心机制）
+
+- **虚拟合成 CPU**：AE 网格中的任务由本阵列提供的"虚拟 CPU"（vCPU）执行，不占用物理
+  合成方块；AE 终端中显示为 `ECO vCPU` / `ECO vCPU #n`。
+- **线程槽分配**：内置线程槽 → 外置普通线程槽 → 内置超线程槽 → 外置超线程槽（用户排序）。
+- **字节池记账**：任务字节实时扣减共享池（可用 = 总量 − Σ 在途任务字节）；可用低于总量
+  10%（超频模式 5%）时暂停新任务；超线程 +10% 虚拟预留不虚增池占用。
+- **任务合并**：相同输出的重复订单自动合并到正在运行的 vCPU，不占新线程。
+- **升级树门控**：晶阵链 / 并行链 / 线程链——闪存晶阵与核心的放入需要解锁对应节点。
+- **同输出并行**：并行核心提供单 tick 多操作并行度（加速器语义）。
+
+### 故障安全（不吞材料）
+
+| 场景 | 行为 |
+|---|---|
+| ME 网络断开 | 任务**冻结不取消**（材料安全），网络恢复自动续跑 |
+| 结构失效（未成形） | 在途任务**数据保留**，重新成形自动恢复继续 |
+| 拆机（挖主方块） | 任务取消并**退款回网格**；退款未完成（网络不可达）的材料进入"孤儿"保护，网络恢复/重建机器后自动退款 |
+| 服务器停服 / 存档卸载 | 自动取消在途任务并退款 |
+| 拆线程核心驱动器方块 | 在途任务自动转为孤儿保护，继续跑完或等退款 |
+
+### GUI
+
+结构状态、ME 通道状态、扩展段数、字节（已用/可用/总量）。
 
 ---
 
-## Building 构建
+## 🗄️ ECO 存储阵列（E-Storage Array）
 
-Requirements: JDK 8 (compile toolchain) + JDK 21 (Gradle daemon); GTNH Gradle template
-(RetroFuturaGradle).
+GT 多方块控制器：**头部 + 1–12 驱动列**（可扩展）。部件：存储阵列外壳、驱动盘位、
+电容（A/B/C）、通风口、ME 总线。由 ME 网络供电、无需维护。
+
+### 存储盘（27 种 + 2 特殊）
+
+| 类型 | 容量档位 |
+|---|---|
+| 物品盘 | 256k / 1024k / 4096k / 16M / 64M / 256M / 1024M / 4096M / 16384M / **UNIVERSE（人造宇宙）** |
+| 流体盘 | 同上 10 档 + **无限水** |
+| 源质盘（需 ThaumicEnergistics） | 同上 10 档 + **魔导** |
+
+对应 ME 存储组件（合成材料）与 L4 / L6 / L9 存储外壳（物品/流体/源质 × 3 档）同样可合成。
+
+### 升级树（里程碑线）
+
+物品 / 流体 / 源质三条独立升级线：放入存储盘需要解锁对应链节点；驱动列长度、
+容量档位上限由升级树推进。
+
+### GUI
+
+结构状态、盘位、列数、总盘数（物品/流体/源质分类）、类型与字节统计（20t 缓存，高盘位不卡顿）。
+
+---
+
+## 构建
+
+要求：JDK 8（编译工具链）+ JDK 21（Gradle 守护进程）；GTNH Gradle 模板（RetroFuturaGradle）。
 
 ```powershell
-# Environment example
-$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"   # daemon needs 21+
-
-# Compile + package
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"  # 守护进程需 21+
 .\gradlew.bat build
-
-# Artifact
-#   build/libs/ecoaegtnh.jar
+# 产物：build/libs/ecoaegtnh.jar
 ```
 
-For the 2.8.4 version check out the `284` branch (its build.gradle pins the 695 dependency set).
+2.8.4 版本请切换到 `284` 分支（其 build.gradle 固定了 695 依赖集）。
 
-## Installation 安装
+## 安装
 
-1. 将 `build/libs/ecoaegtnh.jar` 放入 `mods/`（服务端与客户端一致）。
+1. 将 `build/libs/ecoaegtnh.jar` 放入服务端与客户端的 `mods/`。
 2. 依赖：GT5U、AE2U、StructureLib（版本见分支说明）。
-3. 客户端/服务端必须使用同一版本的 jar（SHA256 一致）。
+3. 客户端与服务端必须使用同一版本的 jar（SHA256 一致）。
 
 ## License
 
-[GNU Lesser General Public License v3.0](LICENSE) (LGPL-3.0)
+[GNU Lesser General Public License v3.0](LICENSE)（LGPL-3.0）
 
 ---
 
-*Documentation, design notes and the implementation log stay private; this repository publishes
-the source code only.*
+*本仓库仅公开发布源代码；设计文档与实现日志保持私有。*

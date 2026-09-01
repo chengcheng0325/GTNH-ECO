@@ -1080,3 +1080,9 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **t116c（字节不减少）**：getAvailableBytes() 只统计外置线程驱动器，内置槽（builtinThreadClusters/HyperClusters）任务字节未计入池占用 → 内置线程下单后池剩余不扣减。修复：getAvailableBytes() 追加统计两个 builtin 列表（availableStorage 任务字节语义一致）。
 - **t116d（红色/不可选）**：用户实测 CPU 列表 busy vCPU 红色、点不了。根因：cpuMatches 在**客户端容器实例**也执行，客户端 status 行由同步包 NBT 重建（serverCluster=null）→ 原 @Redirect 经 getServerCluster() 取 cluster 失效 → fallback 原版任务字节 → busy 合并条件恒假。修复：MixinCraftingCPUStatus 增加 ecEffStorage（vCPU 有效字节 = 池剩余+任务已用，服务端构造时算好，writeToNBT/NBT 构造同步，客户端读回）；MixinContainerCraftConfirm 的 cpuMatches @Redirect 改读 status 自身字段（ECPUStatus.isVCPU/getEffectiveStorage），不再依赖 serverCluster；MixinContainerCraftConfirm 从 server 组移到双端 mixins 组（客户端也要跑）。
 - **验证**：BUILD SUCCESSFUL；部署两端 SHA256 = 556650917268654BB8D32205E21844CC67AB4E6CFBA379A3B85C276D8358AEF2（366709 B，三端一致）；备份 备份/ECOGTNH-源码备份-2026-09-01-t116c/。待用户游戏内复测：busy vCPU 应可选（白色）→ Merge 按钮 → 点击合并。
+
+## t118 挖主机吞材料修复（用户报告，290+284 同源 bug）
+- **现象**：挖掉 ECO 主机器后，内置线程槽上正在跑的任务直接消失，原料全被吞。
+- **根因**：MTEEcalArray.disassembleAll()（机器拆除时）对 builtinThreadClusters/builtinHyperClusters 只调 ecoaegtnh() + clear——没有 cluster.cancel()。AE2U cancel() 会 postChange 把 CPU inventory 原料退还回网格；外置线程（TileEcalThreadDrive.onControllerDisassembled）是 cancel→destroy 所以正常。290/284 同源问题。
+- **修复（290）**：disassembleAll 内置循环改调新 helper cancelAndDestroyBuiltin（try-catch cancel → markDestroyed → destroy，destroy 走 M1 injectDestroy → onClusterReleased 释放槽/编号，幂等）；已构建部署 290 两端（SHA256 CF20613A...，366936 B），备份 备份/ECOGTNH-源码备份-2026-09-01-t118/；284 由 port-engineer 同步修复（t9）。
+- **注意**：2.9.0 服务端目录已改为 M:\AA科技\GTNH\服务端\GT_New_Horizons_2.9.0-beta-2\mods（与 2.8.4 命名一致）。

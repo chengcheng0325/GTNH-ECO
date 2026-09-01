@@ -33,6 +33,10 @@ $env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.8.9-hotspot"   # 守护进
 #   build/libs/ecoaegtnh-dev.jar（开发用，含依赖）
 ```
 
+> **本地依赖说明**（不入库，clone 后需自行准备）：
+> - `libs/Thaumcraft-1.7.10-4.2.3.5.jar`：从 GTNH 整合包 mods 目录复制（`dependencies.gradle` 以 compileOnly 引用，仅用于编译源质盘相关代码）。
+> - `local-maven/`：本机构建用的 RFG 插件本地重定向（`settings.gradle` 引用；不存在时 Gradle 会回退到 GTNH Maven，一般可忽略）。
+
 首次构建会通过 GTNH nexus 拉取依赖；如网络受限，可走本地代理
 （见 `docs/ENVIRONMENT.md`：`http://127.0.0.1:7890`，`gradle.properties` 已配
 `systemProp.http.proxyHost/Port`）。

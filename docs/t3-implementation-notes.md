@@ -1086,3 +1086,16 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **根因**：MTEEcalArray.disassembleAll()（机器拆除时）对 builtinThreadClusters/builtinHyperClusters 只调 ecoaegtnh() + clear——没有 cluster.cancel()。AE2U cancel() 会 postChange 把 CPU inventory 原料退还回网格；外置线程（TileEcalThreadDrive.onControllerDisassembled）是 cancel→destroy 所以正常。290/284 同源问题。
 - **修复（290）**：disassembleAll 内置循环改调新 helper cancelAndDestroyBuiltin（try-catch cancel → markDestroyed → destroy，destroy 走 M1 injectDestroy → onClusterReleased 释放槽/编号，幂等）；已构建部署 290 两端（SHA256 CF20613A...，366936 B），备份 备份/ECOGTNH-源码备份-2026-09-01-t118/；284 由 port-engineer 同步修复（t9）。
 - **注意**：2.9.0 服务端目录已改为 M:\AA科技\GTNH\服务端\GT_New_Horizons_2.9.0-beta-2\mods（与 2.8.4 命名一致）。
+
+## t119 审计高危/中危修复（audit-290 报告驱动，M4/M5/M8 按用户指示跳过）
+- H1：EcoStorageCellInventory.getRemainingItemCount 乘法饱和钳制（UNIVERSE 盘不再恒拒写）
+- H2：FMLServerStoppingEvent + WorldEvent.Unload → cancelAllInFlight（重启/卸载退款；ACTIVE_CONTROLLERS 弱引用注册表，newMetaEntity 注册）
+- H3：onVirtualCPUSubmitJob 无槽 → cluster.cancel()+destroy()（不再冻结）
+- H4：MixinGuiCraftingCPUTable ScreenColor owner 改 appeng/client/gui（消除客户端启动崩溃隐患）
+- M1：injectDestroy 补 CraftingNotificationManager.unregister（@Shadow unreadNotifications）
+- M2：池只扣真实字节（ecoaegtnh\）；预检改用实时 getAvailableBytes 且不 ×1.1；merge 判断同步
+- M3：MTEEcoStorageArray GUI 统计 20t 缓存（12 个 supplier 读缓存）
+- M6：percentOf/bytesLedTooltip 百分比饱和
+- M7：channel 断连 ≥100t 自动 cancelAllInFlight（20t 检测）
+- M9：onVirtualCPUSubmitJob contains 去重（isClusterAssigned）+ RETURN 注入双保险
+- 构建 BUILD SUCCESSFUL（jar 369305 B）；部署 290 两端 SHA256 7864B302...；备份 备份/ECOGTNH-源码备份-2026-09-01-t119/；284 同源同步派 port-engineer。

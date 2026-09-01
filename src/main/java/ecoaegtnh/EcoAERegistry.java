@@ -31,9 +31,6 @@ public final class EcoAERegistry {
     }
 
     public static void init(FMLInitializationEvent event) {
-        // H2 (audit): server-stop / dimension-unload refund hooks (own class — reflecting over
-        // MTEEcalArray from EventBus would hit @SideOnly(CLIENT) signatures on the server).
-        ecoaegtnh.EcoaegtnhLifecycleHooks.init();
         // MTE registration must happen in the load phase (GT preload..postload window).
         RegistryMTE.register();
         // E-Calculator C4 controller MTE (must run AFTER RegistryMTE so the creative

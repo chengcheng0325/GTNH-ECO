@@ -209,4 +209,17 @@ public class EcoAEGTNHCore {
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
     }
+
+    /**
+     * H2 (audit): server stopping — cancel every in-flight vCPU job (refunds materials into the
+     * grid). Dispatched by FML's @Mod.EventHandler (no EventBus reflection, safe on the server).
+     */
+    @EventHandler
+    public void onServerStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
+        for (ecoaegtnh.metatileentity.MTEEcalArray controller : ecoaegtnh.EcoaegtnhLifecycleHooks.activeControllers()) {
+            if (controller.getBaseMetaTileEntity() != null) {
+                controller.cancelAllInFlight("server stopping");
+            }
+        }
+    }
 }

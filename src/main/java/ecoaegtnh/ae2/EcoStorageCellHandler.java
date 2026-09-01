@@ -8,21 +8,22 @@ import net.minecraft.util.IIcon;
 import appeng.api.exceptions.AppEngException;
 import appeng.api.implementations.tiles.IChestOrDrive;
 import appeng.api.storage.ICellHandler;
-import appeng.api.storage.ICellInventoryHandler;
 import appeng.api.storage.IMEInventory;
 import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.ISaveProvider;
 import appeng.api.storage.StorageChannel;
-import appeng.api.storage.data.IAEStackType;
 import appeng.core.sync.GuiBridge;
 import appeng.util.Platform;
 import ecoaegtnh.item.estorage.ItemEcoStorageCell;
 import ecoaegtnh.item.estorage.ItemEcoStorageCellEssentia;
+import ecoaegtnh.item.estorage.ItemEcoStorageCellFluid;
+import ecoaegtnh.item.estorage.ItemEcoStorageCellItem;
+import ecoaegtnh.item.estorage.StorageType;
 
 /**
- * AE2U cell handler for ECO E-Storage cells. Registered via
- * {@code AEApi.instance().registries().cell().addCellHandler(...)} so cells work in ME
- * drives/chests and in the E-Storage drive bay.
+ * AE2U cell handler for ECO E-Storage cells. 284 移植版：695 没有 IAEStackType，
+ * 只有 StorageChannel（ITEMS/FLUIDS）——源质盘并入 FLUIDS 通道（TE 1.7.14 原生做法）。
+ * 注册方式不变（{@code AEApi.instance().registries().cell().addCellHandler(...)}）。
  */
 public class EcoStorageCellHandler implements ICellHandler {
 
@@ -37,57 +38,35 @@ public class EcoStorageCellHandler implements ICellHandler {
     @SuppressWarnings("rawtypes")
     public IMEInventoryHandler getCellInventory(ItemStack is, ISaveProvider host, StorageChannel channel) {
         if (!isCell(is)) return null;
-        if (channel == StorageChannel.ITEMS) {
-            return getCellInventory(is, host, appeng.util.item.AEItemStackType.ITEM_STACK_TYPE);
-        }
-        if (channel == StorageChannel.FLUIDS) {
-            return getCellInventory(is, host, appeng.util.item.AEFluidStackType.FLUID_STACK_TYPE);
-        }
-        return null;
-    }
-
-    @Override
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public IMEInventoryHandler getCellInventory(ItemStack is, ISaveProvider host, IAEStackType<?> type) {
-        if (!isCell(is)) return null;
         ItemEcoStorageCell cell = (ItemEcoStorageCell) is.getItem();
-        // t114f: infinite family-exclusive cells use AE2U's CreativeCellInventory, exactly like
-        // the AE2FC infinite water (FluidCellInventoryHandler(CreativeCellInventory)) and the
-        // TE4 creative essentia cell (EssentiaCellInventoryHandler(CreativeCellInventory)) —
-        // the network sees the configured items (water / every aspect) at ~2^52 each, infinitely
-        // extractable, and injects of those items are accepted forever. MUST run before the
-        // essentia branch below (the arcane cell is an ItemEcoStorageCellEssentia).
-        if (cell.isInfinite()) {
-            if (type != cell.getStackType()) return null;
-            appeng.me.storage.CreativeCellInventory creative = new appeng.me.storage.CreativeCellInventory(is);
-            if (is.getItem() instanceof ItemEcoStorageCellEssentia) {
-                return new thaumicenergistics.common.inventory.EssentiaCellInventoryHandler(creative);
-            }
-            if (cell.getStackType() == appeng.util.item.AEFluidStackType.FLUID_STACK_TYPE) {
-                return new appeng.me.storage.FluidCellInventoryHandler(creative);
-            }
-            return null;
-        }
-        // Essentia cells (TE4's AEEssentiaStackType). The type is compared through the item's own
-        // stack type field so no TE4 class is loaded for item/fluid cells; the essentia inventory
-        // classes are only touched when an essentia cell is actually processed (TE4 present).
-        if (is.getItem() instanceof ItemEcoStorageCellEssentia) {
-            if (type != ((ItemEcoStorageCell) is.getItem()).getStackType()) return null;
-            try {
-                EcoStorageCellInventoryEssentia inv = new EcoStorageCellInventoryEssentia(is, host);
-                return new EcoStorageCellInventoryEssentiaHandler(inv);
-            } catch (AppEngException e) {
-                return null;
-            }
-        }
-        if (cell.getStackType() != type) return null;
         try {
-            EcoStorageCellInventory inv = new EcoStorageCellInventory(is, host);
-            if (inv.getStackType() != type) return null;
-            return new EcoStorageCellInventoryHandler(inv, type);
+            if (channel == StorageChannel.ITEMS) {
+                // 物品盘只挂 ITEMS 通道（源质/流体盘都不在这里）。
+                if (cell.getStorageType() != StorageType.ITEM) return null;
+                EcoStorageCellInventory inv = new EcoStorageCellInventory(is, host);
+                return new EcoStorageCellInventoryHandler(inv);
+            }
+            if (channel == StorageChannel.FLUIDS) {
+                // 源质盘（ARCANE 无限盘优先：T114f 复刻 TE4 创造源质元件）。
+                if (is.getItem() instanceof ItemEcoStorageCellEssentia) {
+                    if (cell.isInfinite()) {
+                        return new EcoEssentiaCellInventoryInfinite(is, host);
+                    }
+                    return new EcoEssentiaCellInventory(is, host);
+                }
+                // 流体盘（INF_WATER 无限盘：复刻 AE2FC 无限水）。
+                if (cell.getStorageType() != StorageType.FLUID) return null;
+                if (cell.isInfinite()) {
+                    return new EcoFluidCellInventoryHandler(new EcoFluidCellInventoryInfinite(is, host));
+                }
+                return new EcoFluidCellInventoryHandler(new EcoFluidCellInventory(is, host));
+            }
         } catch (AppEngException e) {
             return null;
+        } catch (IllegalArgumentException e) {
+            return null;
         }
+        return null;
     }
 
     @Override
@@ -116,9 +95,8 @@ public class EcoStorageCellHandler implements ICellHandler {
 
     @Override
     public int getStatusForCell(ItemStack is, IMEInventory handler) {
-        if (handler instanceof ICellInventoryHandler cellInvHandler && cellInvHandler.getCellInv() != null) {
-            return cellInvHandler.getCellInv()
-                .getStatusForCell();
+        if (handler instanceof appeng.api.storage.ICellCacheRegistry iccr) {
+            return iccr.getCellStatus();
         }
         return 1;
     }
@@ -126,5 +104,14 @@ public class EcoStorageCellHandler implements ICellHandler {
     @Override
     public double cellIdleDrain(ItemStack is, IMEInventory handler) {
         return is.getItem() instanceof ItemEcoStorageCell cell ? cell.getIdleDrain() : 0;
+    }
+
+    /** 便捷：按物品家族取通道（ITEMS / FLUIDS），非 ECO 物品返回 null。 */
+    public static StorageChannel channelOf(ItemStack is) {
+        if (is == null || !(is.getItem() instanceof ItemEcoStorageCell cell)) return null;
+        if (is.getItem() instanceof ItemEcoStorageCellItem) return StorageChannel.ITEMS;
+        if (is.getItem() instanceof ItemEcoStorageCellFluid) return StorageChannel.FLUIDS;
+        if (is.getItem() instanceof ItemEcoStorageCellEssentia) return StorageChannel.FLUIDS;
+        return cell.getStorageType() == StorageType.ITEM ? StorageChannel.ITEMS : StorageChannel.FLUIDS;
     }
 }

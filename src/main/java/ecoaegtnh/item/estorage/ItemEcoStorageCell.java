@@ -8,9 +8,10 @@ import net.minecraft.world.World;
 
 import appeng.api.config.FuzzyMode;
 import appeng.api.implementations.items.IStorageCell;
-import appeng.api.storage.data.IAEStackType;
+import appeng.api.storage.data.IAEItemStack;
 import appeng.items.contents.CellConfig;
 import appeng.items.contents.CellUpgrades;
+import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.util.Platform;
 import ecoaegtnh.EcoAEGTNHCore;
 import ecoaegtnh.ae2.EcoStorageCellInventory;
@@ -22,15 +23,16 @@ import ecoaegtnh.ae2.EcoStorageCellInventory;
  * <p>
  * Capacity follows the old ECO design (t68): k-level totalBytes = value x 1024, M-level
  * totalBytes = value x 1000 x 1024; perType = byteMultiplier x 1024 (see {@link CellSize}).
+ * <p>
+ * 284 移植版：695 无 IAEStackType——物品家族用 {@link #getStorageType()} 判定，
+ * 单位/字节由 {@link #getAmountPerByte()} 提供（物品 8 / 流体 2048 / 源质 2）。
  */
 public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
 
     protected final CellSize size;
-    protected final IAEStackType<?> stackType;
 
-    public ItemEcoStorageCell(CellSize size, IAEStackType<?> stackType) {
+    public ItemEcoStorageCell(CellSize size) {
         this.size = size;
-        this.stackType = stackType;
         setMaxStackSize(1);
         setCreativeTab(EcoAEGTNHCore.TAB_STORAGE);
         // Keep the estorage_cell_ prefix in sync with setTextureName and the lang keys
@@ -48,6 +50,21 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
     /** t68/t76: byte multiplier used by the inventory byte math (perType = multiplier x 1024). */
     public int getByteMultiplier() {
         return size.byteMultiplier;
+    }
+
+    /** 284：单位/字节（t68 weight 的 amountPerByte 项）——物品 8 / 流体 2048 / 源质 2。 */
+    public long getAmountPerByte() {
+        if (getStorageType() == StorageType.FLUID) {
+            return ecoaegtnh.ae2.EcoFluidCellInventory.FLUID_AMOUNT_PER_BYTE;
+        }
+        if (getStorageType() == StorageType.ESSENTIA) {
+            return ecoaegtnh.ae2.EcoEssentiaCellInventory.ESSENTIA_PER_BYTE;
+        }
+        return EcoStorageCellInventory.ITEM_AMOUNT_PER_BYTE;
+    }
+
+    public CellSize getSize() {
+        return size;
     }
 
     @Override
@@ -69,6 +86,11 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
     @Override
     public int getBytesPerType(ItemStack cellItem) {
         return size.byteMultiplier * 1024;
+    }
+
+    @Override
+    public boolean isBlackListed(ItemStack cellItem, IAEItemStack requestedAddition) {
+        return false;
     }
 
     @Override
@@ -99,11 +121,6 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
         return size.idleDrain();
     }
 
-    @Override
-    public IAEStackType<?> getStackType() {
-        return stackType;
-    }
-
     // ------------------------------------------------------------------
     // ICellWorkbenchItem
     // ------------------------------------------------------------------
@@ -124,32 +141,24 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
     }
 
     /**
-     * t114: the infinite-water fluid cell accepts ONLY water — a fixed one-slot config holding
-     * a water bucket (AE2FC ItemInfinityWaterStorageCell.InfinityConfig 复刻). The AE cell
-     * inventory reads this config as its partition list, so the bay only stores water. The
-     * arcane essentia cell uses TE4's CreativeEssentiaCellConfig — EVERY aspect, so the
-     * creative inventory advertises all of them into the network (TE4 creative-cell parity).
+     * t114 (284 版)：INF_WATER 的 config 固定一格水桶（AE2FC InfinityConfig 复刻）——
+     * 无限水盘的 creative 库存按此 config 把水以 2^52-1 暴露给网络；ARCANE 源质盘不需要
+     * config（creative 库存自带全部源质，TE4 creative 同款），返回普通 CellConfig。
      */
     @Override
-    public appeng.tile.inventory.IAEStackInventory getConfigAEInventory(ItemStack is) {
+    public net.minecraft.inventory.IInventory getConfigInventory(ItemStack is) {
         if (size == CellSize.INF_WATER) {
             return new FixedWaterConfig();
-        }
-        if (size == CellSize.ARCANE) {
-            return new thaumicenergistics.common.inventory.CreativeEssentiaCellConfig();
         }
         return new CellConfig(is);
     }
 
     /** t114: fixed one-slot water config for the infinite-water cell (AE2FC InfinityConfig parity). */
-    private static final class FixedWaterConfig extends appeng.tile.inventory.IAEStackInventory {
+    public static final class FixedWaterConfig extends AppEngInternalInventory {
 
-        FixedWaterConfig() {
+        public FixedWaterConfig() {
             super(null, 1);
-            putAEStackInSlot(
-                0,
-                appeng.util.item.AEFluidStack.create(
-                    new net.minecraftforge.fluids.FluidStack(net.minecraftforge.fluids.FluidRegistry.WATER, 1000)));
+            this.setInventorySlotContents(0, new ItemStack(net.minecraft.init.Items.water_bucket, 1, 0));
         }
 
         @Override
@@ -206,34 +215,21 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
      * AE-style storage readout on the item tooltip (t33): "Used: X / Y bytes" and
      * "Types: N / M", built from the cell's NBT inventory (client-safe, no grid required).
      * <p>
-     * t84: the readout no longer constructs the AE cell-inventory chain
-     * (EcoStorageCellHandler.getCellInventory -> new EcoStorageCellInventory, which builds the
-     * upgrade/config inventories and deserializes every stored stack). The creative-tab first-open
-     * lag (user-reported: only the ECO tab stuttered — 27 cells, each hover rebuilding that chain)
-     * is gone because the same numbers are now derived directly from the cell NBT keys that
-     * CellInventory itself writes ("it"/"ic" short/long, or the sparse "Essentia#N" slots for
-     * essentia cells) plus the t68 byte formula — a pure tag read, zero inventory construction,
-     * and no NBT side effect on hover (the old path created the tag when missing).
-     * A {@code Throwable} guard keeps the tooltip from ever crashing the client (e.g. an essentia
-     * cell hovered while ThaumicEnergistics is absent — items only exist then, but the path stays
-     * defensive regardless).
+     * 284 版：物品/流体盘读 "it"/"ic"（EcoStorageCellInventory 写），源质盘读稀疏
+     * "Essentia#N" 槽（EcoEssentiaCellInventory 写，大小在 "Cnt"）。284 的自写库存
+     * 不再有 AE2U 的 63 类型截断——源质盘分母用档位真实值（60/80/100）。
      */
     private void addStorageInformation(java.util.List<String> lines, ItemStack stack) {
         try {
             final boolean essentia = this instanceof ItemEcoStorageCellEssentia;
             final NBTTagCompound tag = stack.getTagCompound();
-            // Essentia cells are clamped by AE2U's base CellInventory to 63 max types (no
-            // getTotalItemTypes override), so the tooltip denominator/scan bound mirrors that.
-            final long totalTypes = essentia ? Math.min(getTotalTypes(stack), 63) : getTotalTypes(stack);
+            final long totalTypes = getTotalTypes(stack);
             long storedTypes;
             long storedCount;
             if (tag == null) {
                 storedTypes = 0;
                 storedCount = 0;
             } else if (essentia) {
-                // Sparse "Essentia#N" slots, exactly like
-                // EcoStorageCellInventoryEssentia.loadCellStacks (AEEssentiaStack.writeToNBT stores
-                // the size under "Cnt") — matches the inventory path without building one.
                 storedTypes = 0;
                 storedCount = 0;
                 for (int i = 0; i < totalTypes; i++) {
@@ -245,16 +241,21 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
                         storedCount += sz;
                     }
                 }
+            } else if (this instanceof ItemEcoStorageCellFluid) {
+                // "ft" (short stored types) / "fc" (long stored count) written by
+                // EcoFluidCellInventory.
+                storedTypes = tag.getShort(ecoaegtnh.ae2.EcoFluidCellInventory.TYPE_TAG);
+                storedCount = tag.getLong(ecoaegtnh.ae2.EcoFluidCellInventory.COUNT_TAG);
             } else {
                 // "it" (short stored types) / "ic" (long stored count) written by
-                // CellInventory.saveChanges (EcoStorageCellInventory.ITEM_TYPE_TAG/ITEM_COUNT_TAG).
-                storedTypes = tag.getShort(EcoStorageCellInventory.ITEM_TYPE_TAG);
-                storedCount = tag.getLong(EcoStorageCellInventory.ITEM_COUNT_TAG);
+                // EcoStorageCellInventory.
+                storedTypes = tag.getShort(ecoaegtnh.ae2.EcoStorageCellInventory.TYPE_TAG);
+                storedCount = tag.getLong(ecoaegtnh.ae2.EcoStorageCellInventory.COUNT_TAG);
             }
 
             // t68 byte formula: weight = amountPerByte x byteMultiplier (item/fluid); essentia has
             // no byteMultiplier (TE4 weight = amountPerByte) and bytesPerType = 0.
-            final long weight = getStackType().getAmountPerByte() * (essentia ? 1L : getByteMultiplier());
+            final long weight = getAmountPerByte() * (essentia ? 1L : getByteMultiplier());
             final long div = weight > 0 ? storedCount % weight : 0;
             final long unused = div == 0 ? 0 : weight - div;
             final long usedBytes = storedTypes * getBytesPerType(stack)

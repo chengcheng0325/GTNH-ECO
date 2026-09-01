@@ -53,10 +53,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
-import gregtech.api.structure.error.StructureError;
-import gregtech.api.structure.error.StructureErrorRegistry;
-import gregtech.api.structure.error.StructureErrors;
-import gregtech.api.structure.error.TranslatableText;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
@@ -294,18 +290,10 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     }
 
     /**
-     * t79: hide the base-class "soft mallet to start" idle hints
-     * (gt.interact.desc.mb.idle.1/2/3 + the running line) — this is a pure AE machine that never
-     * "runs" (checkProcessing_EM returns NONE, isActive stays false), so those lines were
-     * permanently displayed. MTEMultiBlockBase.drawTexts gates them behind this hook (base
-     * default true; same pattern as kekztech MTELapotronicSuperCapacitor / tectech
-     * MTEActiveTransformer). TTMultiblockBase adds no idle-hint logic of its own, so this single
-     * override is sufficient.
+     * t79 注记（284 移植版）：原 showMachineStatusInGUI()=false（隐藏"软锤启动"等闲置提示行）
+     * 在 GT5U 5.09.51.482 中不存在该方法（5.09.54 新增）——2.8.4 下 GUI 会显示默认状态行，
+     * 见 移植报告.md 已知差异。
      */
-    @Override
-    public boolean showMachineStatusInGUI() {
-        return false;
-    }
 
     public int getTier() {
         return tier;
@@ -416,24 +404,21 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     // ------------------------------------------------------------------
 
     /**
-     * t37: hide the terminal maintenance-status icon. The base implementation returns
-     * {@code getDefaultHasMaintenanceChecks()} (hard-coded true), so the MUI2 terminal rendered
-     * the maintenance hoverable ("needs maintenance" / tool list) even with
-     * {@code hasMaintenanceChecks = false}. Returning {@code shouldCheckMaintenance()} keeps the
-     * icon in sync with the actual maintenance setting: false here (t32 disables maintenance), so
-     * the icon is never shown and no maintenance hatch/tools are ever required.
+     * t37 注记（284 移植版）：原 supportsMaintenanceIssueHoverable() 覆写在 GT5U 5.09.51.482
+     * 中不存在（5.09.54 新增）——2.8.4 的终端维护悬停图标行为回到默认
+     * （getDefaultHasMaintenanceChecks 判定），见 移植报告.md 已知差异。
      */
-    @Override
-    public boolean supportsMaintenanceIssueHoverable() {
-        return shouldCheckMaintenance();
-    }
 
     // ------------------------------------------------------------------
     // Structure check
     // ------------------------------------------------------------------
+    // 284 移植版：GT5U 5.09.51.482 没有 gregtech.api.structure.error.*（5.09.54 新增），
+    // TTMultiblockBase.checkMachine 是 final，唯一钩子是 protected checkMachine_EM——
+    // 结构检查改为布尔返回，具体错误文案（cell_tier_exceeded 等）在 2.8.4 只能显示
+    // 通用结构无效（见 移植报告.md 已知差异）。
 
     @Override
-    public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
+    protected boolean checkMachine_EM(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
         driveBays.clear();
         energyCellsMin.clear();
         energyCellsMax.clear();
@@ -464,24 +449,17 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         }
         if (!ok) {
             disassembleAll();
-            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-            return;
+            return false;
         }
-        scanStructureVolume(aBaseMetaTileEntity, errors);
-    }
-
-    @Override
-    public boolean checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
-        List<StructureError> errors = new ArrayList<>();
-        checkMachine(aBaseMetaTileEntity, aStack, errors);
-        return errors.isEmpty();
+        return scanStructureVolume(aBaseMetaTileEntity);
     }
 
     /**
      * Iterates every cell of the matched shape using the same facing-relative conversion as the
      * structure check, and collects the part tiles (drive bays, capacitance cells, ME bus).
+     * 284：布尔返回（5.09.51.482 无错误列表 API）。
      */
-    private void scanStructureVolume(IGregTechTileEntity base, List<StructureError> errors) {
+    private boolean scanStructureVolume(IGregTechTileEntity base) {
         int aMax = driveColumnLength + 2;
         int offsetA = driveColumnLength + 2;
         ExtendedFacing facing = getExtendedFacing();
@@ -516,13 +494,16 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
                             energyCellsMax.add(cap);
                         }
                     } else if (te instanceof TileEcoStorageMEBus bus) {
-                        if (bus.onAssembled(this)) {
-                            if (meBus == null) meBus = bus;
-                            else errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-                        } else {
+                        if (!bus.onAssembled(this)) {
                             // The ME bus is claimed by another controller — this structure cannot
                             // serve the grid through it.
-                            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
+                            disassembleAll();
+                            return false;
+                        }
+                        if (meBus == null) meBus = bus;
+                        else {
+                            disassembleAll();
+                            return false;
                         }
                     }
                     // t32: pure AE power — no GT energy hatches in the structure, so nothing to
@@ -532,8 +513,7 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         }
         if (driveBays.isEmpty() || meBus == null) {
             disassembleAll();
-            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-            return;
+            return false;
         }
 
         // t62: upgrade-tree gate at formation — close the pre-assembly bypass. While no
@@ -542,20 +522,13 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         // 人造宇宙 without I10/F10/E10) could be inserted before formation. Re-validate statically here (bay coordinates +
         // this controller's upgrade tree; the static helper does not touch the bay's controller
         // reference, preserving t55 claim independence): any bay holding a cell whose chain node
-        // is not activated fails the structure check with a clear error. Post-formation insertion
-        // of an unsupported cell stays rejected by the bay itself (its controller field is set
-        // by then).
+        // is not activated fails the structure check. Post-formation insertion of an unsupported
+        // cell stays rejected by the bay itself (its controller field is set by then).
         for (TileEcoStorageDrive drive : driveBays) {
             net.minecraft.item.ItemStack cell = drive.getCellStack();
             if (cell != null && !TileEcoStorageDrive.isSupportedByUpgradeNode(cell, this)) {
-                String nodeId = TileEcoStorageDrive.requiredUpgradeNode(cell);
-                String nodeName = nodeId == null ? "?"
-                    : net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.upgrade.node." + nodeId + ".name");
                 disassembleAll();
-                errors.add(
-                    StructureErrors
-                        .of("ecoaegtnh.structure.error.cell_tier_exceeded", TranslatableText.literal(nodeName)));
-                return;
+                return false;
             }
         }
 
@@ -583,6 +556,7 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         prevCaps.addAll(energyCellsMin);
         prevMeBus = meBus;
         recalculateEnergyUsage();
+        return true;
     }
 
     /** Disassembles all currently/ previously assembled parts. */
@@ -803,11 +777,11 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         return 2.0;
     }
 
-    /** Bridge for drive-bay alteration events. */
-    public void postAlteration(appeng.api.storage.data.IAEStackType<?> type,
+    /** Bridge for drive-bay alteration events. 284：695 用 StorageChannel（无 IAEStackType）。 */
+    public void postAlteration(appeng.api.storage.StorageChannel channel,
         List<? extends appeng.api.storage.data.IAEStack<?>> changes) {
         if (meBus != null) {
-            meBus.postAlteration(type, changes);
+            meBus.postAlteration(channel, changes);
         }
     }
 
@@ -864,27 +838,31 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.no_maintenance"))
             .beginVariableStructureBlock(4, MAX_DRIVE_COLUMNS + 3, 3, 3, 2, 2, false)
             .addController(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.controller"))
-            .addCasing(
-                "2+",
+            // 284：5.09.51.482 的 MultiblockTooltipBuilder 无 addCasing(String,String,boolean)，
+            // 用 addCasingInfoMin(name, 数量, 不含字母后缀) 等价表达（"2+"→≥2，"1+"→≥1，"1"→恰好 1）。
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_casing.name"),
+                2,
                 false)
-            .addCasing(
-                "1+",
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_drive.name"),
+                1,
                 false)
-            .addCasing(
-                "1+",
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_capacitance.name"),
+                1,
                 false)
-            .addCasing(
-                "1",
+            .addCasingInfoExactly(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_vent.name"),
+                1,
                 false)
-            .addCasing(
-                "1",
+            .addCasingInfoExactly(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_me_bus.name"),
+                1,
                 false)
-            .addStructureFooter(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
+            // 284：5.09.51.482 的 MultiblockTooltipBuilder 无 addStructureFooter——用
+            // addStructureInfo 输出放置说明（语义最接近的结构信息行）。
+            .addStructureInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
             .toolTipFinisher();
         return tt;
     }
@@ -1323,7 +1301,21 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     @Override
     protected void drawTexts(com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn screenElements,
         com.gtnewhorizons.modularui.common.widget.SlotWidget inventorySlot) {
-        super.drawTexts(screenElements, inventorySlot);
+        // 284（t7）：5.09.51.482 的父类 drawTexts 无条件添加"软锤启动"闲置提示行
+        // （gt.interact.desc.mb.idle.1/2/3；5.09.54.20 才有 showMachineStatusInGUI 门控，
+        // 290 版借此隐藏）。纯 AE 机器从不"运行"，该行永远显示——先让基类画进临时列，
+        // 过滤掉这三行后搬回真实列（只影响本机器，其他机器走原路径，见
+        // EcoMachineTooltipFilter）。
+        screenElements.setSynced(false);
+        screenElements.setSpace(0);
+        com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn tmp = new com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn();
+        super.drawTexts(tmp, inventorySlot);
+        for (com.gtnewhorizons.modularui.api.widget.Widget w : tmp.getChildren()) {
+            if (EcoMachineTooltipFilter.isIdleHintLine(w)) {
+                continue;
+            }
+            screenElements.widget(w);
+        }
 
         screenElements
             .widget(
@@ -1537,12 +1529,8 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         return list;
     }
 
-    // M6 (audit): part*100 overflows long for UNIVERSE-scale cells (used > 9.2e16) → negative
-    // percentages; saturate at 100 (percentOf can never exceed it) and guard the multiply.
     private static int percentOf(long part, long total) {
-        if (total <= 0 || part <= 0) return 0;
-        if (part >= total || part > Long.MAX_VALUE / 100) return 100;
-        return (int) (part * 100 / total);
+        return total > 0 ? (int) (part * 100 / total) : 0;
     }
 
     // ------------------------------------------------------------------
@@ -1566,67 +1554,19 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     }
 
     private int storedTypesOf(Class<? extends ItemEcoStorageCell> family) {
-        return (int) cachedStat(family, Stat.STORED_TYPES);
+        return (int) sumStat(family, Stat.STORED_TYPES);
     }
 
     private int totalTypesOf(Class<? extends ItemEcoStorageCell> family) {
-        return (int) cachedStat(family, Stat.TOTAL_TYPES);
+        return (int) sumStat(family, Stat.TOTAL_TYPES);
     }
 
     private long usedBytesOf(Class<? extends ItemEcoStorageCell> family) {
-        return cachedStat(family, Stat.USED_BYTES);
+        return sumStat(family, Stat.USED_BYTES);
     }
 
     private long totalBytesOf(Class<? extends ItemEcoStorageCell> family) {
-        return cachedStat(family, Stat.TOTAL_BYTES);
-    }
-
-    // M3 (audit): GUI stat cache — the 12 FakeSyncWidget suppliers call these up to 20 Hz while a
-    // GUI is open; each sumStat rebuilds every cell inventory (full NBT deserialization). Recompute
-    // once per 20 ticks and let the suppliers read the cache.
-    private long statItemStoredTypes, statItemTotalTypes, statItemUsedBytes, statItemTotalBytes;
-    private long statFluidStoredTypes, statFluidTotalTypes, statFluidUsedBytes, statFluidTotalBytes;
-    private long statEssentiaStoredTypes, statEssentiaTotalTypes, statEssentiaUsedBytes, statEssentiaTotalBytes;
-    private long lastStatRefreshTick = Long.MIN_VALUE;
-
-    private long cachedStat(Class<? extends ItemEcoStorageCell> family, Stat stat) {
-        refreshStatCacheIfStale();
-        boolean item = family == ItemEcoStorageCellItem.class;
-        boolean fluid = family == ItemEcoStorageCellFluid.class;
-        switch (stat) {
-            case STORED_TYPES:
-                return item ? statItemStoredTypes : fluid ? statFluidStoredTypes : statEssentiaStoredTypes;
-            case TOTAL_TYPES:
-                return item ? statItemTotalTypes : fluid ? statFluidTotalTypes : statEssentiaTotalTypes;
-            case USED_BYTES:
-                return item ? statItemUsedBytes : fluid ? statFluidUsedBytes : statEssentiaUsedBytes;
-            default:
-                return item ? statItemTotalBytes : fluid ? statFluidTotalBytes : statEssentiaTotalBytes;
-        }
-    }
-
-    private void refreshStatCacheIfStale() {
-        if (getBaseMetaTileEntity() == null || getBaseMetaTileEntity().getWorld() == null) {
-            return;
-        }
-        long t = getBaseMetaTileEntity().getWorld()
-            .getTotalWorldTime();
-        if (t - lastStatRefreshTick < 20) {
-            return;
-        }
-        lastStatRefreshTick = t;
-        statItemStoredTypes = sumStat(ItemEcoStorageCellItem.class, Stat.STORED_TYPES);
-        statItemTotalTypes = sumStat(ItemEcoStorageCellItem.class, Stat.TOTAL_TYPES);
-        statItemUsedBytes = sumStat(ItemEcoStorageCellItem.class, Stat.USED_BYTES);
-        statItemTotalBytes = sumStat(ItemEcoStorageCellItem.class, Stat.TOTAL_BYTES);
-        statFluidStoredTypes = sumStat(ItemEcoStorageCellFluid.class, Stat.STORED_TYPES);
-        statFluidTotalTypes = sumStat(ItemEcoStorageCellFluid.class, Stat.TOTAL_TYPES);
-        statFluidUsedBytes = sumStat(ItemEcoStorageCellFluid.class, Stat.USED_BYTES);
-        statFluidTotalBytes = sumStat(ItemEcoStorageCellFluid.class, Stat.TOTAL_BYTES);
-        statEssentiaStoredTypes = sumStat(ItemEcoStorageCellEssentia.class, Stat.STORED_TYPES);
-        statEssentiaTotalTypes = sumStat(ItemEcoStorageCellEssentia.class, Stat.TOTAL_TYPES);
-        statEssentiaUsedBytes = sumStat(ItemEcoStorageCellEssentia.class, Stat.USED_BYTES);
-        statEssentiaTotalBytes = sumStat(ItemEcoStorageCellEssentia.class, Stat.TOTAL_BYTES);
+        return sumStat(family, Stat.TOTAL_BYTES);
     }
 
     /** Which per-cell statistic a family sum aggregates. */
@@ -1641,27 +1581,30 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
      * Sums one cell statistic across one family (server-side FakeSyncWidget source). The cell
      * inventory is built through our handler with a null save provider (read-only pattern, same
      * as the item tooltip).
+     * <p>
+     * 284 移植版：695 无 IAEStackType/泛型 ICellInventoryHandler——按物品家族取通道，
+     * 统计统一走 ICellCacheRegistry（物品/流体/源质 handler 都实现它）。
      */
     private long sumStat(Class<? extends ItemEcoStorageCell> family, Stat stat) {
         long sum = 0;
         for (net.minecraft.item.ItemStack cell : cellStacksOf(family)) {
+            appeng.api.storage.StorageChannel channel = EcoStorageCellHandler.channelOf(cell);
+            if (channel == null) continue;
             appeng.api.storage.IMEInventoryHandler<?> handler = EcoStorageCellHandler.INSTANCE
-                .getCellInventory(cell, null, ((ItemEcoStorageCell) cell.getItem()).getStackType());
-            if (handler instanceof appeng.api.storage.ICellInventoryHandler<?>cellHandler
-                && cellHandler.getCellInv() != null) {
-                appeng.api.storage.ICellInventory<?> inv = cellHandler.getCellInv();
+                .getCellInventory(cell, null, channel);
+            if (handler instanceof appeng.api.storage.ICellCacheRegistry iccr) {
                 switch (stat) {
                     case STORED_TYPES:
-                        sum += inv.getStoredItemTypes();
+                        sum += iccr.getUsedTypes();
                         break;
                     case TOTAL_TYPES:
-                        sum += inv.getTotalItemTypes();
+                        sum += iccr.getTotalTypes();
                         break;
                     case USED_BYTES:
-                        sum += inv.getUsedBytes();
+                        sum += iccr.getUsedBytes();
                         break;
                     case TOTAL_BYTES:
-                        sum += inv.getTotalBytes();
+                        sum += iccr.getTotalBytes();
                         break;
                 }
             }

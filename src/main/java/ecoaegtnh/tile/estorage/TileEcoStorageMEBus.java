@@ -25,7 +25,6 @@ import appeng.api.storage.IMEInventory;
 import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.StorageChannel;
 import appeng.api.storage.data.IAEStack;
-import appeng.api.storage.data.IAEStackType;
 import appeng.api.util.AECableType;
 import appeng.api.util.DimensionalCoord;
 import appeng.me.GridAccessException;
@@ -114,12 +113,12 @@ public class TileEcoStorageMEBus extends TileEcoStoragePart implements ICellCont
     }
 
     /** Bridge for drive-bay alteration events. */
-    public void postAlteration(IAEStackType<?> type, List<? extends IAEStack<?>> changes) {
+    public void postAlteration(StorageChannel channel, List<? extends IAEStack<?>> changes) {
         if (!isOperational()) return;
         try {
             if (proxy.isActive()) {
                 proxy.getStorage()
-                    .postAlterationOfStoredItems(type, changes, source);
+                    .postAlterationOfStoredItems(channel, changes, source);
             }
         } catch (GridAccessException ignored) {}
     }
@@ -131,22 +130,10 @@ public class TileEcoStorageMEBus extends TileEcoStoragePart implements ICellCont
     @Override
     @SuppressWarnings("rawtypes")
     public List<IMEInventoryHandler> getCellArray(StorageChannel channel) {
-        if (channel == StorageChannel.ITEMS) {
-            return getCellArray(appeng.util.item.AEItemStackType.ITEM_STACK_TYPE);
-        }
-        if (channel == StorageChannel.FLUIDS) {
-            return getCellArray(appeng.util.item.AEFluidStackType.FLUID_STACK_TYPE);
-        }
-        return Collections.emptyList();
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public List<IMEInventoryHandler> getCellArray(IAEStackType<?> type) {
         if (!isOperational()) return Collections.emptyList();
         List<IMEInventoryHandler> result = new ArrayList<>();
         for (TileEcoStorageDrive drive : controller.getDriveBays()) {
-            IMEInventoryHandler<?> h = drive.getHandler(type);
+            IMEInventoryHandler<?> h = drive.getHandler(channel);
             if (h != null) result.add(h);
         }
         return result;

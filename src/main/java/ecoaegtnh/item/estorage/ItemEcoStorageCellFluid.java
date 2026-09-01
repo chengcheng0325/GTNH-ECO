@@ -1,18 +1,17 @@
 package ecoaegtnh.item.estorage;
 
-import static appeng.util.item.AEFluidStackType.FLUID_STACK_TYPE;
-
 import net.minecraft.item.ItemStack;
 
 /**
  * ECO E-Storage fluid cell — 10 sizes (256k … 人造宇宙), 25 fluid types.
+ * 284 版：走 FLUIDS 通道（无限水盘 = INF_WATER 固定 1 型）。
  */
 public class ItemEcoStorageCellFluid extends ItemEcoStorageCell {
 
     public static final int MAX_TYPES = 25;
 
     public ItemEcoStorageCellFluid(CellSize size) {
-        super(size, FLUID_STACK_TYPE);
+        super(size);
     }
 
     @Override

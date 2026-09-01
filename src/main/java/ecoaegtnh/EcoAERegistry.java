@@ -36,8 +36,7 @@ public final class EcoAERegistry {
         // E-Calculator C4 controller MTE (must run AFTER RegistryMTE so the creative
         // controller-stack append in RegistryEcal.registerMTE() is not overwritten).
         RegistryEcal.registerMTE();
-        // GT assembler recipes for the E-Storage machine family.
-        ecoaegtnh.recipe.Recipes.register();
+        // 284（t6）：GT 配方移到 postInit 注册（见 postInit 注释）。
         // WAILA tooltips for the E-Storage drive bays (t33) and the E-Calculator drives (t43);
         // no-ops when WAILA is not installed.
         if (cpw.mods.fml.common.Loader.isModLoaded("Waila")) {
@@ -79,6 +78,10 @@ public final class EcoAERegistry {
                 + (EcoStorageCellHandler.INSTANCE.getCellInventory(
                     RegistryItems.itemCell(ecoaegtnh.item.estorage.CellSize.M_16),
                     null,
-                    appeng.util.item.AEItemStackType.ITEM_STACK_TYPE) != null));
+                    appeng.api.storage.StorageChannel.ITEMS) != null));
+        // 284（t6）：GT 配方移到 postInit 注册——2.8.4 的 circuitAdvanced 等矿典成员在各 mod
+        // 的 init 阶段陆续注册（IC2 在 ecoaegtnh 之后 init），postInit 时矿典已完整，
+        // Recipes 的矿典展开（expandSingleOreDictPair）才能覆盖全部成员。
+        ecoaegtnh.recipe.Recipes.register();
     }
 }

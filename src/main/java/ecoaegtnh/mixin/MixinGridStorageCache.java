@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import appeng.api.storage.ICellCacheRegistry;
 import appeng.api.storage.ICellProvider;
 import appeng.api.storage.IMEInventoryHandler;
-import appeng.api.storage.data.AEStackTypeRegistry;
-import appeng.api.storage.data.IAEStackType;
+import appeng.api.storage.StorageChannel;
 import appeng.me.cache.GridStorageCache;
+import appeng.me.storage.MEInventoryHandler;
 import ecoaegtnh.metatileentity.MTEEcoStorageArray;
 import ecoaegtnh.tile.estorage.TileEcoStorageDrive;
 import ecoaegtnh.tile.estorage.TileEcoStorageMEBus;
@@ -26,6 +26,11 @@ import ecoaegtnh.tile.estorage.TileEcoStorageMEBus;
  * cell providers — our E-Storage ME bus (a custom ICellContainer) was never registered, so ECO
  * cells showed as "0 B / 0 B" in the network info tool (t75). This mixin registers our bus's
  * drive-bay cells through the same private registry call the base uses for drives/chests.
+ * <p>
+ * 284 移植版：695 无 AEStackTypeRegistry，只有 ITEMS/FLUIDS 两个通道（源质盘挂在 FLUIDS
+ * 上）——循环两个通道取 handler；695 的 IMEInventoryHandler 接口没有 getInternal()，
+ * 经 MEInventoryHandler 类判定。updateCellsStatusFromRegistry 内部按
+ * iccr.getCellType() 分流到 ITEM/FLUID/ESSENTIA 三列（695 的 GridStorageCache 原生支持）。
  */
 @Mixin(GridStorageCache.class)
 public abstract class MixinGridStorageCache {
@@ -47,9 +52,10 @@ public abstract class MixinGridStorageCache {
                 for (TileEcoStorageDrive drive : controller.getDriveBays()) {
                     ItemStack cell = drive.getCellStack();
                     if (cell == null) continue;
-                    for (IAEStackType<?> type : AEStackTypeRegistry.getAllTypes()) {
-                        IMEInventoryHandler<?> handler = drive.getHandler(type);
-                        if (handler != null && handler.getInternal() instanceof ICellCacheRegistry iccr
+                    for (StorageChannel channel : StorageChannel.values()) {
+                        IMEInventoryHandler<?> handler = drive.getHandler(channel);
+                        if (handler instanceof MEInventoryHandler<?>meh
+                            && meh.getInternal() instanceof ICellCacheRegistry iccr
                             && iccr.canGetInv()) {
                             updateCellsStatusFromRegistry(iccr, cell);
                         }

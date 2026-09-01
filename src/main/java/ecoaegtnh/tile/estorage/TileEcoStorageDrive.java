@@ -1,8 +1,5 @@
 package ecoaegtnh.tile.estorage;
 
-import static appeng.util.item.AEFluidStackType.FLUID_STACK_TYPE;
-import static appeng.util.item.AEItemStackType.ITEM_STACK_TYPE;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -11,22 +8,24 @@ import net.minecraft.nbt.NBTTagCompound;
 import appeng.api.storage.IMEInventory;
 import appeng.api.storage.IMEInventoryHandler;
 import appeng.api.storage.ISaveProvider;
+import appeng.api.storage.StorageChannel;
 import appeng.api.storage.data.IAEStack;
-import appeng.api.storage.data.IAEStackType;
 import ecoaegtnh.ae2.EcoCellDriveWatcher;
 import ecoaegtnh.ae2.EcoStorageCellHandler;
 
 /**
  * E-Storage drive bay tile: holds a single storage cell and exposes its IMEInventoryHandler(s) to
  * the ME bus. Writes/extracts are tracked so the grid is notified (mirrors ECellDriveWatcher).
+ * <p>
+ * 284 移植版：695 只有 ITEMS/FLUIDS 两个通道，源质盘挂在 FLUIDS 通道（TE 1.7.14 原生
+ * 做法）——所以盘位按通道缓存两个 handler；FLUIDS 通道的 handler 具体是流体盘还是源质盘
+ * 由 EcoStorageCellHandler 按物品家族决定。
  */
 public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventory, ISaveProvider {
 
     private ItemStack cellStack = null;
     private IMEInventoryHandler<?> cachedHandlerItem = null;
     private IMEInventoryHandler<?> cachedHandlerFluid = null;
-    /** Cache for any additional stack type (e.g. TE4 essentia); rebuilt on cell change. */
-    private IMEInventoryHandler<?> cachedHandlerOther = null;
     private long lastWriteTick = 0;
 
     public ItemStack getCellStack() {
@@ -34,23 +33,21 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IAEStack<T>> IMEInventoryHandler<T> getHandler(IAEStackType<T> type) {
+    public <T extends IAEStack<T>> IMEInventoryHandler<T> getHandler(StorageChannel channel) {
         if (cellStack == null) return null;
-        IMEInventoryHandler<?> cached = type == ITEM_STACK_TYPE ? cachedHandlerItem
-            : type == FLUID_STACK_TYPE ? cachedHandlerFluid : cachedHandlerOther;
+        IMEInventoryHandler<?> cached = channel == StorageChannel.ITEMS ? cachedHandlerItem : cachedHandlerFluid;
         if (cached != null) return (IMEInventoryHandler<T>) cached;
-        IMEInventoryHandler<T> handler = buildHandler(type);
-        if (type == ITEM_STACK_TYPE) cachedHandlerItem = handler;
-        else if (type == FLUID_STACK_TYPE) cachedHandlerFluid = handler;
-        else cachedHandlerOther = handler;
+        IMEInventoryHandler<T> handler = buildHandler(channel);
+        if (channel == StorageChannel.ITEMS) cachedHandlerItem = handler;
+        else cachedHandlerFluid = handler;
         return handler;
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends IAEStack<T>> IMEInventoryHandler<T> buildHandler(IAEStackType<T> type) {
-        IMEInventoryHandler<T> raw = EcoStorageCellHandler.INSTANCE.getCellInventory(cellStack, this, type);
+    private <T extends IAEStack<T>> IMEInventoryHandler<T> buildHandler(StorageChannel channel) {
+        IMEInventoryHandler<T> raw = EcoStorageCellHandler.INSTANCE.getCellInventory(cellStack, this, channel);
         if (raw == null) return null;
-        return new EcoCellDriveWatcher<>(raw, type, this);
+        return new EcoCellDriveWatcher<>(raw, channel, this);
     }
 
     public void onWriting() {
@@ -64,7 +61,6 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     public void invalidateHandlers() {
         cachedHandlerItem = null;
         cachedHandlerFluid = null;
-        cachedHandlerOther = null;
     }
 
     @Override

@@ -1,3 +1,29 @@
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
 }
+
+// --- GTNH 2.8.4 移植：修复 GT5U 5.09.51.482 的传递依赖死链 ---
+// GT5-Unofficial 5.09.51.482 -> ThaumicTinkerer 2.11.26 -> ThaumicBoots 1.4.14 ->
+// Thaumic_Exploration 1.4.2-GTNH -> com.github.GTNewHorizons:CodeChickenLib:1.3.0，
+// 该构件在任何已配置仓库都不存在（nexus 上仅有 codechicken:CodeChickenLib:1.7.10-1.1.3.136，
+// 坐标不同不可替换）。本 mod 编译期不引用 CCL（也不引用 TT 链上任何类），
+// 运行时这些 mod 由 2.8.4 整合包提供，因此直接排除该死叶节点。
+// 其余链上 dev jar（TT 2.11.26 / ThaumicBoots 1.4.14 / Thaumic_Exploration 1.4.2-GTNH）
+// 均已在 nexus 确认存在，保留在 classpath 上与 290 版行为一致。
+configurations.all {
+    exclude group: 'com.github.GTNewHorizons', module: 'CodeChickenLib'
+
+    // --- AE2U 版本钉死 rv3-beta-695-GTNH ---
+    // GT5U 5.09.51.482 自身是按 AE2U rv3-beta-702-GTNH 编译的（其 pom compile 依赖 702），
+    // 而 2.8.4 整合包运行时装的是 rv3-beta-695-GTNH。若不做强制，Gradle 冲突仲裁会取 702，
+    // 我们针对 695 API 的适配就会编译到 702 的 API 上，运行时在 695 上可能 NoClassDefFoundError。
+    // 强制 695 使编译期 API 面 == 运行时 API 面（695/702 差异极小，但以整合包实际版本为准）。
+    resolutionStrategy {
+        force 'com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-695-GTNH'
+    }
+}
+
+// 移植诊断：javac 默认最多报 100 个错误，移植期需要完整错误清单。
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xmaxerrs', '2000']
+}

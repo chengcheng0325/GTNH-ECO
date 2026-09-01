@@ -1,20 +1,18 @@
 package ecoaegtnh.item.estorage;
 
-import static appeng.util.item.AEItemStackType.ITEM_STACK_TYPE;
-
 import net.minecraft.item.ItemStack;
 
 /**
  * ECO E-Storage item cell — 10 sizes (256k … 人造宇宙), 315 item types (t68; exposed via
- * EcoStorageCellInventory.getTotalItemTypes so the tooltip shows "Types: N / 315" and up to 315
- * types are accepted).
+ * EcoStorageCellInventory so the tooltip shows "Types: N / 315" and up to 315 types are accepted).
+ * 284 版：无 IAEStackType，家族由 instanceof / getStorageType() 判定，走 ITEMS 通道。
  */
 public class ItemEcoStorageCellItem extends ItemEcoStorageCell {
 
     public static final int MAX_TYPES = 315;
 
     public ItemEcoStorageCellItem(CellSize size) {
-        super(size, ITEM_STACK_TYPE);
+        super(size);
     }
 
     @Override

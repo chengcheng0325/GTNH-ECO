@@ -69,9 +69,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
-import gregtech.api.structure.error.StructureError;
-import gregtech.api.structure.error.StructureErrorRegistry;
-import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import tectech.thing.gui.TecTechUITextures;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
@@ -441,10 +438,6 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     public MTEEcalArray(int aID, String aName, String aNameRegional, int tier) {
         super(aID, aName, aNameRegional);
         this.tier = tier;
-        // H2 (audit): server-stop / dimension-unload refund hooks live in
-        // EcoaegtnhLifecycleHooks — NOT registered on this class: EventBus.register() reflects
-        // over this MTE's methods and trips NoClassDefFoundError on the dedicated server for
-        // @SideOnly(CLIENT) signatures (IResourceManager/ISidedInventory — same trap as t30).
     }
 
     public MTEEcalArray(String aName, int tier) {
@@ -461,16 +454,11 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         return false;
     }
 
-    @Override
-    public boolean supportsMaintenanceIssueHoverable() {
-        return shouldCheckMaintenance();
-    }
-
-    /** Pure AE machine that never "runs" 鈥?hide the base idle hints (E-Storage t79). */
-    @Override
-    public boolean showMachineStatusInGUI() {
-        return false;
-    }
+    /**
+     * t37 注记（284 移植版）：原 supportsMaintenanceIssueHoverable()/showMachineStatusInGUI()
+     * 覆写在 GT5U 5.09.51.482 中不存在（5.09.54 新增）——2.8.4 下终端维护悬停与 GUI 状态行
+     * 回到默认行为，见 移植报告.md 已知差异。
+     */
 
     public int getTier() {
         return tier;
@@ -535,12 +523,15 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         return true;
     }
 
+    /**
+     * 284 移植版：5.09.51.482 无 structure.error API——checkMachine 唯一钩子
+     * checkMachine_EM（布尔返回），具体错误文案丢失（见 移植报告.md 已知差异）。
+     */
     @Override
-    public void checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack, List<StructureError> errors) {
+    protected boolean checkMachine_EM(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
         if (!checkControllerShared(aBaseMetaTileEntity)) {
             disassembleAll();
-            errors.add(StructureErrors.of("ecoaegtnh.structure.error.controller_shared"));
-            return;
+            return false;
         }
         cellDrives.clear();
         parallelDrives.clear();
@@ -573,24 +564,17 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         }
         if (!ok) {
             disassembleAll();
-            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-            return;
+            return false;
         }
-        scanStructureVolume(aBaseMetaTileEntity, errors);
-    }
-
-    @Override
-    public boolean checkMachine(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
-        List<StructureError> errors = new ArrayList<>();
-        checkMachine(aBaseMetaTileEntity, aStack, errors);
-        return errors.isEmpty();
+        return scanStructureVolume(aBaseMetaTileEntity);
     }
 
     /**
      * Iterates every cell of the matched shape using the same facing-relative conversion as the
      * structure check, and collects the part tiles (cell drives, thread cores, ME channel).
+     * 284：布尔返回（5.09.51.482 无错误列表 API）。
      */
-    private void scanStructureVolume(IGregTechTileEntity base, List<StructureError> errors) {
+    private boolean scanStructureVolume(IGregTechTileEntity base) {
         int aMax = segmentLength + 2;
         int offsetA = segmentLength + 1;
         int[] abc = new int[3];
@@ -620,28 +604,30 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
                     } else if (te instanceof TileEcalThreadDrive core) {
                         if (core.onAssembled(this)) threadCores.add(core);
                     } else if (te instanceof TileEcalMEChannel ch) {
-                        if (ch.onAssembled(this)) {
-                            if (channel == null) channel = ch;
-                            else errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-                        } else {
-                            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
+                        if (!ch.onAssembled(this)) {
+                            disassembleAll();
+                            return false;
+                        }
+                        if (channel == null) channel = ch;
+                        else {
+                            disassembleAll();
+                            return false;
                         }
                     }
                     // t35: parallelism comes from the core ITEMS inserted into the parallel drives
-                    // (危 below); the old tiered parallel-proc block counting is gone.
-                    // Pure AE power 鈥?no GT energy hatches in the structure (plan 搂5.2).
+                    // (see below); the old tiered parallel-proc block counting is gone.
+                    // Pure AE power — no GT energy hatches in the structure (plan §5.2).
                 }
             }
         }
-        // t35: parallelism total = 危 inserted parallel cores across all parallel drives.
+        // t35: parallelism total = Σ inserted parallel cores across all parallel drives.
         parallelismTotal = 0;
         for (TileEcalParallelDrive drive : parallelDrives) {
             parallelismTotal += drive.getSuppliedParallelism();
         }
         if (cellDrives.isEmpty() || channel == null) {
             disassembleAll();
-            errors.add(StructureErrorRegistry.UNKNOWN_STRUCTURE_ERROR);
-            return;
+            return false;
         }
 
         // Disassemble parts that are no longer present; assemble new ones.
@@ -674,21 +660,19 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         prevThreadCores.addAll(threadCores);
         prevChannel = channel;
         recalculateIdlePower();
-        // t9: computation-core state 鈥?parallelism, byte pool, standby vCPU.
+        // t9: computation-core state — parallelism, byte pool, standby vCPU.
         recalculateParallelism();
         recalculateTotalBytes();
         createVirtualCPU();
+        return true;
     }
 
     /**
-     * t122 (user): KEEP-JOBS teardown for structure invalidation (unformed). In-flight vCPU jobs
-     * are NOT cancelled or destroyed: their materials stay safe inside the AE grid clusters, and
-     * the jobs freeze (the channel's getCPUs() stops exposing them once the controller reference
-     * is released) and RESUME when the machine forms again (scanStructureVolume re-claims the
-     * channel → getCPUs() re-exposes the clusters → the grid scheduler drives them again).
-     * Only the standby vCPU is destroyed; the vCPU number pool is kept (running clusters still
-     * hold numbers). The channel proxy is NOT invalidated — the grid node must stay alive so the
-     * jobs keep their data.
+     * KEEP-mode teardown (t122, user): the controller was unformed/disassembled but the machine
+     * block stays — in-flight vCPU jobs are NOT cancelled/destroyed. The channel proxy is NOT
+     * invalidated: the grid node must stay alive so the jobs keep their data (they freeze and
+     * resume when the machine forms again). The vCPU number pool is NOT reset (running clusters
+     * still hold their numbers). Full refund teardown lives in {@link #disassembleAllRefund()}.
      */
     protected void disassembleAll() {
         destroyStandbyVCPU();
@@ -785,12 +769,12 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         for (TileEcalThreadDrive old : prevThreadCores) {
             if (!threadCores.contains(old)) old.onDisassembled();
         }
-        // t122b (user report): the channel proxy is NOT invalidated on machine removal — an
-        // orphaned cluster (refund incomplete at teardown, adopted by EcoaegtnhOrphanClusters)
-        // needs the channel's grid node alive to be driven and refunded once the network is
-        // back; destroying the node here made the orphan unreachable and the materials vanished.
-        // The node stays (the channel block keeps it), so reconnects and rebuilt machines can
-        // drive the refund; the player can remove the channel block itself to fully disconnect.
+        // t122c (user): KEEP the channel proxy alive — an orphan (adopted because the refund
+        // could not land on a disconnected grid) is only re-driven when its owner channel's grid
+        // node is alive; invalidating it here (channel.onDisassembled) would leave the orphan
+        // locked forever with its materials. The node re-activates on reconnect and the orphan's
+        // isComplete branch retries the storeItems() refund; players who want a full disconnect
+        // can break the channel block itself (then a rebuilt machine re-homes the orphan).
         if (channel != null) channel.onControllerDisassembledKeepProxy();
         if (prevChannel != null && prevChannel != channel) prevChannel.onControllerDisassembledKeepProxy();
         prevCellDrives.clear();
@@ -1010,8 +994,8 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     /**
      * Pool bytes not yet committed to tasks: totalBytes − Σ thread-drive used storage −
      * Σ built-in slot task bytes. t116c: the built-in thread/hyper clusters live in
-     * builtinThreadClusters/builtinHyperClusters (not in any TileEcalThreadDrive), so their task
-     * bytes must be counted here too — otherwise the pool never shrinks while a built-in slot
+     * builtinThreadClusters/builtinHyperClusters (not in any TileEcalThreadDrive), so their
+     * task bytes must be counted here too — otherwise the pool never shrinks while a built-in slot
      * runs a job. M2 (audit): only REAL task bytes (ecoaegtnh$getUsedStorage) are charged — the
      * hyper +10% virtual reserve must not overdraw the shared pool.
      */
@@ -1199,7 +1183,7 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     }
 
     /**
-     * M7 (audit): whether the cluster already occupies a thread slot (built-in lists or any
+     * M9 (audit): whether the cluster already occupies a thread slot (built-in lists or any
      * thread drive). Used to de-duplicate assignment (merge / stale-cluster paths).
      */
     public boolean isClusterAssigned(CraftingCPUCluster cluster) {
@@ -1214,9 +1198,6 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         }
         return false;
     }
-
-    /** M7 (audit): first tick the channel was observed down (for the auto-cancel grace period). */
-    private long channelDownTick = -1;
 
     /**
      * M7 (audit): cancel + destroy every in-flight cluster (built-in slots and thread drives),
@@ -1349,7 +1330,7 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             }
             ECPUCluster.from(cluster)
                 .ecoaegtnh$markDestroyed();
-            cluster.destroy();
+            cluster.destroy(); // M1 injectDestroy → onClusterReleased (slot/number release, idempotent)
             if (!numbered) {
                 releaseVCPUId(cluster); // t114i: not running — hold no number
             }
@@ -1475,6 +1456,9 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     protected @org.jetbrains.annotations.NotNull CheckRecipeResult checkProcessing_EM() {
         return CheckRecipeResultRegistry.NONE;
     }
+
+    /** t122 (user): first tick the channel was observed down (for the once-per-transition log). */
+    private long channelDownTick = -1;
 
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
@@ -1685,31 +1669,35 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.info.no_maintenance"))
             .beginVariableStructureBlock(4, MAX_SEGMENTS + 3, 3, 3, 2, 2, false)
             .addController(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.controller"))
-            .addCasing(
-                "2+",
+            // 284：5.09.51.482 的 MultiblockTooltipBuilder 无 addCasing(String,String,boolean)，
+            // 用 addCasingInfoMin/Exactly 等价表达（"2+"→≥2，"1+"→≥1，"1"→恰好 1）。
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_casing.name"),
+                2,
                 false)
-            .addCasing(
-                "1+",
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_cell_drive.name"),
+                1,
                 false)
-            .addCasing(
-                "1+",
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_parallel_drive.name"),
+                1,
                 false)
-            .addCasing(
-                "1+",
+            .addCasingInfoMin(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_thread_drive.name"),
+                1,
                 false)
-            .addCasing(
-                "1",
+            .addCasingInfoExactly(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_transmitter_bus.name"),
+                1,
                 false)
-            .addCasing(
-                "1",
+            .addCasingInfoExactly(
                 net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_me_channel.name"),
+                1,
                 false)
-            .addStructureFooter(
+            // 284：5.09.51.482 的 MultiblockTooltipBuilder 无 addStructureFooter——用
+            // addStructureInfo 输出放置说明（语义最接近的结构信息行）。
+            .addStructureInfo(
                 net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.footer.placement"))
             .toolTipFinisher();
         return tt;
@@ -2062,7 +2050,18 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
 
     @Override
     protected void drawTexts(DynamicPositionedColumn screenElements, SlotWidget inventorySlot) {
-        super.drawTexts(screenElements, inventorySlot);
+        // 284（t7）：同 E-Storage（MTEEcoStorageArray.drawTexts）——基类在 5.09.51.482 无条件
+        // 添加"软锤启动"闲置提示行，临时列过滤后搬回（见 EcoMachineTooltipFilter）。
+        screenElements.setSynced(false);
+        screenElements.setSpace(0);
+        DynamicPositionedColumn tmp = new DynamicPositionedColumn();
+        super.drawTexts(tmp, inventorySlot);
+        for (com.gtnewhorizons.modularui.api.widget.Widget w : tmp.getChildren()) {
+            if (EcoMachineTooltipFilter.isIdleHintLine(w)) {
+                continue;
+            }
+            screenElements.widget(w);
+        }
 
         screenElements.widget(
             TextWidget.dynamicString(() -> structureRow())
@@ -2284,16 +2283,7 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     private java.util.List<String> bytesLedTooltip() {
         java.util.List<String> list = new ArrayList<>();
         long used = Math.max(0, syncTotalBytes - syncAvailableBytes);
-        // M6 (audit): saturate instead of overflowing (used*100 for UNIVERSE pools goes negative).
-        long total = Math.max(0, syncTotalBytes);
-        int pct;
-        if (total == 0 || used <= 0) {
-            pct = 0;
-        } else if (used >= total || used > Long.MAX_VALUE / 100) {
-            pct = 100;
-        } else {
-            pct = (int) (used * 100 / total);
-        }
+        int pct = syncTotalBytes > 0 ? (int) (used * 100 / syncTotalBytes) : 0;
         list.add(
             EnumChatFormatting.GRAY + StatCollector.translateToLocal("ecoaegtnh.gui.ecal.led.bytes")
                 + " "

@@ -91,13 +91,6 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Shadow
     private long usedStorage;
 
-    /**
-     * M1 (audit): the per-cluster notification map registered at construction (vanilla
-     * unregisters it in destroy(), which owner/standby clusters skip).
-     */
-    @Shadow
-    private java.util.Map<String, java.util.List<appeng.me.cluster.implementations.CraftingCPUCluster.CraftNotification>> unreadNotifications;
-
     @Shadow
     private boolean isDestroyed;
 
@@ -129,8 +122,12 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Shadow
     public abstract boolean isBusy();
 
+    /**
+     * 284 移植版：695 的 CraftingCPUCluster 没有 getFinalMultiOutput()——submitJob 的
+     * merge 分支直接读字段 {@code finalOutput}（IAEItemStack），照抄 695 的写法。
+     */
     @Shadow
-    public abstract appeng.api.storage.data.IAEStack<?> getFinalMultiOutput();
+    private appeng.api.storage.data.IAEItemStack finalOutput;
 
     @Final
     @Shadow
@@ -161,12 +158,14 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         // condition can never hold for us). Must run BEFORE the t114g byte precheck.
         if (this.isBusy() && this.myLastLink != null
             && this.myLastLink.isStandalone()
-            && this.getFinalMultiOutput() != null
-            && this.getFinalMultiOutput()
-                .isSameType(job.getOutput())) {
+            && this.finalOutput != null
+            && this.finalOutput.isSameType(job.getOutput())) {
             long extra = this.ecoaegtnh$hyperAssigned && !this.ecoaegtnh$virtualCPUOwner.isOverclocked()
                 ? job.getByteTotal() / 10
                 : 0;
+            // M2 (audit): the merge check compares REAL bytes against the LIVE pool — the hyper
+            // +10% reserve is virtual capacity on the AE2 side and does not overdraw the pool,
+            // so no extra surcharge here (overclock mode never had one either).
             if (this.ecoaegtnh$virtualCPUOwner.getAvailableBytes() >= job.getByteTotal()) {
                 ICraftingLink link = ((CraftingCPUCluster) (Object) this).mergeJob(g, job, src, requestingMachine);
                 if (link != null) {
@@ -245,7 +244,9 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
             || this.ecoaegtnh$virtualCPUOwner.isStandbyVCPU((CraftingCPUCluster) (Object) this))) {
             return;
         }
-        if (this.inventory.isEmpty()) {
+        // 284：695 的 MECraftingInventory 没有 isEmpty()——getItemList() 为内部列表。
+        if (this.inventory.getItemList()
+            .size() == 0) {
             destroy();
         }
     }
@@ -270,7 +271,9 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         }
         if (this.isComplete) {
             // Ensure inventory is empty before reclaiming the thread slot.
-            if (this.inventory.isEmpty()) {
+            // 284：695 的 MECraftingInventory 没有 isEmpty()——getItemList() 为内部列表。
+            if (this.inventory.getItemList()
+                .size() == 0) {
                 destroy();
                 ci.cancel();
             }
@@ -317,10 +320,6 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         // t122: a destroyed orphan (adopted while its controller was removed on a dead grid)
         // leaves the registry — self-cleanup, idempotent.
         ecoaegtnh.EcoaegtnhOrphanClusters.release((CraftingCPUCluster) (Object) this);
-        // M1 (audit): vanilla destroy() body (which calls CraftingNotificationManager.unregister)
-        // is skipped for owner/standby clusters below — unregister here instead; List.remove is
-        // idempotent so external thread-core clusters (vanilla body still runs) are unaffected.
-        appeng.hooks.CraftingNotificationManager.unregister(this.unreadNotifications);
         // t114i: unified release hook on EVERY destroy path — returns the vCPU number to the
         // controller's smallest-available pool and frees any built-in thread slot the cluster
         // held. Idempotent (id 0 → no-op), so it is safe for the standby vCPU (never numbered),
@@ -477,7 +476,9 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Unique
     @Override
     public boolean ecoaegtnh$isInventoryEmpty() {
-        return this.inventory == null || this.inventory.isEmpty();
+        // 284: 695 的 MECraftingInventory 没有 isEmpty()——getItemList() 为内部列表（同 injectCancel）。
+        return this.inventory == null || this.inventory.getItemList()
+            .size() == 0;
     }
 
     @Unique
@@ -592,17 +593,17 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         return ecoaegtnh$usedExtraStorage;
     }
 
+    @Unique
+    @Override
+    public void ecoaegtnh$setUsedExtraStorage(final long usedExtraStorage) {
+        this.ecoaegtnh$usedExtraStorage = usedExtraStorage;
+    }
+
     /** M2 (audit): real task bytes for pool accounting (excludes the virtual hyper reserve). */
     @Unique
     @Override
     public long ecoaegtnh$getUsedStorage() {
         return this.usedStorage;
-    }
-
-    @Unique
-    @Override
-    public void ecoaegtnh$setUsedExtraStorage(final long usedExtraStorage) {
-        this.ecoaegtnh$usedExtraStorage = usedExtraStorage;
     }
 
     @Unique

@@ -3,6 +3,7 @@ package ecoaegtnh.mixin;
 import net.minecraft.item.ItemStack;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,9 +19,7 @@ import ecoaegtnh.item.estorage.ItemEcoStorageCell;
  * drive bays): the ME drive and ME chest GUIs place cells through
  * {@link SlotRestrictedInput} STORAGE_CELLS slots; their filter is the vanilla Slot
  * {@code isItemValid} (SRG func_75214_a), which delegates to {@code CellRegistry.isCellHandled}.
- * AE2U has no per-item "forbid drive insertion" flag, and {@code IStorageCell.isStorageCell()}
- * cannot return false (the CellInventory base REQUIRES it, and the ECO bays construct
- * EcoStorageCellInventory through CellInventory), so this mixin rejects ECO cells at the slot
+ * AE2U has no per-item "forbid drive insertion" flag, so this mixin rejects ECO cells at the slot
  * level. The ECO array bay path never goes through AE2U slots (TileEcoStorageDrive.buildHandler
  * calls our EcoStorageCellHandler directly), so ECO bays keep working unchanged.
  * <p>
@@ -31,9 +30,16 @@ import ecoaegtnh.item.estorage.ItemEcoStorageCell;
  * inventory is a {@link TileDrive} (ContainerDrive passes the tile itself, ContainerDrive:29) or
  * a {@link TileChest} (ContainerChest:30). Every other STORAGE_CELLS user (IO port's "cells"
  * sub-inventory, future uses such as spatial IO) and WORKBENCH_CELL slots pass through untouched.
+ * <p>
+ * 284 移植版：695 的 SlotRestrictedInput 没有 getItemType() 访问器（只有 private final 字段
+ * {@code which}）——改为 @Shadow 字段（remap=false，字段在 SlotRestrictedInput 自身声明，
+ * 不涉及父类）。
  */
 @Mixin(SlotRestrictedInput.class)
 public abstract class MixinSlotRestrictedInput {
+
+    @Shadow(remap = false)
+    private PlacableItemType which;
 
     @Inject(method = "isItemValid", at = @At("HEAD"), cancellable = true)
     private void ecoaegtnh$rejectEcoCellsInDriveLike(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
@@ -43,15 +49,14 @@ public abstract class MixinSlotRestrictedInput {
     }
 
     /**
-     * Drive-like whitelist check via the standard mixin {@code (SlotRestrictedInput)(Object)this}
-     * cast (the AP cannot @Shadow members inherited from the vanilla Slot parent, and target
-     * methods need @Shadow — the cast avoids both): {@code getItemType()} is the public accessor
-     * for the slot's {@code which} field, and ContainerDrive/ContainerChest pass the tile itself
-     * as the slot inventory (public vanilla {@code Slot.inventory} field).
+     * Drive-like whitelist check via the shadowed {@code which} field (695 无 getItemType 访问器，
+     * 见类注释) + public vanilla {@code Slot.inventory} field through the standard mixin
+     * {@code (SlotRestrictedInput)(Object)this} cast (the AP cannot @Shadow members inherited
+     * from the vanilla Slot parent).
      */
     private boolean isDriveLikeStorageCellSlot() {
         final SlotRestrictedInput slot = (SlotRestrictedInput) (Object) this;
-        return slot.getItemType() == PlacableItemType.STORAGE_CELLS
+        return which == PlacableItemType.STORAGE_CELLS
             && (slot.inventory instanceof TileDrive || slot.inventory instanceof TileChest);
     }
 }

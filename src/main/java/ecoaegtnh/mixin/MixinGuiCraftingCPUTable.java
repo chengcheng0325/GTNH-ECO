@@ -52,17 +52,21 @@ public abstract class MixinGuiCraftingCPUTable {
         return row;
     }
 
+    /**
+     * 284 移植版：695 的 drawFG 不用 ScreenColor.setGuiColor() 上色，行背景色直接
+     * {@code GL11.glColor4f}（源码顺序第 7 个调用 = 未选中/未悬停/不可合并的默认行，
+     * 即 290 版拦截的“默认行着色点”）。ECO 行替换为档位色，其余调用原样放行。
+     */
     @WrapOperation(
         method = "drawFG",
-        // H4 (audit): ScreenColor lives in appeng/client/gui, NOT appeng/core/localization — the
-        // wrong owner only matched by Mixin's imaginary fallback and would crash a strict build.
-        at = @At(value = "INVOKE", target = "Lappeng/client/gui/ScreenColor;setGuiColor()V"))
-    private void ecoaegtnh$tintRow(final Operation<Void> original) {
+        at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glColor4f(FFFF)V", ordinal = 6))
+    private void ecoaegtnh$tintRow(final float r, final float g, final float b, final float a,
+        final Operation<Void> original) {
         if (this.ecoaegtnh$currentRow instanceof ECPUStatus ec && ec.ecoaegtnh$getLevel() >= 0) {
             final float[] c = tierColor(ec.ecoaegtnh$getLevel());
             GL11.glColor4f(c[0], c[1], c[2], 1.0F);
         } else {
-            original.call();
+            original.call(r, g, b, a);
         }
     }
 

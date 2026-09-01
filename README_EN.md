@@ -36,8 +36,9 @@ structure.
 - **Virtual crafting CPUs**: jobs in the AE grid are executed by virtual CPUs provided by the
   array — no physical crafting blocks are occupied. Shown in the AE terminal as
   `ECO vCPU` / `ECO vCPU #n`.
-- **Thread-slot assignment**: built-in thread slots → external normal thread slots → built-in
-  hyper slots → external hyper slots (user-ordered priority).
+- **Thread-slot assignment**: new jobs take thread slots in a fixed priority — built-in normal
+  thread slots first, then external normal thread slots, then built-in hyper slots, finally
+  external hyper slots.
 - **Byte-pool accounting**: job bytes are charged against the shared pool in real time
   (available = total − Σ in-flight task bytes); new jobs pause below 10% of the pool (5% in
   overclock mode); the hyper +10% virtual reserve never overdraws the pool.
@@ -118,3 +119,11 @@ For the 2.8.4 version check out the `284` branch (its build.gradle pins the 695 
 
 *This repository publishes the source code only; design documents and the implementation log
 stay private.*
+
+## Acknowledgements
+
+This project is based on the design concept of NovaEngineering-ECOAEExtension
+(sddsd2332, Kasumi_Nova, WI_8614_ice) and was ported and developed with AI assistance:
+dual-version adaptation for GTNH 2.9.0-beta-2 (AE2U rv3-beta-1000) and GTNH 2.8.4
+(AE2U rv3-beta-695), including the vCPU crafting system, the storage array, failure-safety
+handling and audit fixes. Issues and PRs are welcome.

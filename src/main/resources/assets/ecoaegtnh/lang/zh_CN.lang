@@ -1,4 +1,4 @@
-itemGroup.ecoaegtnh=ECO AE 扩展
+﻿itemGroup.ecoaegtnh=ECO AE 扩展
 
 # ------------------------------------------------------------------
 # 方块
@@ -45,14 +45,11 @@ item.ecoaegtnh.estorage_cell_essentia_16384m.name=ECO 存储阵列源质盘 (163
 item.ecoaegtnh.estorage_cell_essentia_universe.name=ECO 人造宇宙源质盘
 item.ecoaegtnh.estorage_cell_essentia_arcane.name=ECO 魔导源质盘
 # 存储盘提示
-ecoaegtnh.estorage_cell.infinite_water.tip=§b无限容量 · 仅存储水
-ecoaegtnh.estorage_cell.arcane.tip=§d无限容量 · 可存储全部源质
+ecoaegtnh.estorage_cell.infinite_water.tip=§b无限水
+ecoaegtnh.estorage_cell.arcane.tip=§d无限源质
 ecoaegtnh.estorage_cell.insert.tip=放入存储阵列驱动盘位以接入 ME 网络
 ecoaegtnh.estorage_cell.interact.tip=潜行右键驱动盘位可放入/取出本存储盘
-ecoaegtnh.estorage_cell.extract.tip=需要 ME 网络供电
 # t53: milestone-line gates replace the L4/L6/L9 controller wording
-ecoaegtnh.estorage_cell.l6.tip=需要对应线 Lv.2 及以上（物品/流体/源质线独立投料升级）
-ecoaegtnh.estorage_cell.l9.tip=需要对应线 Lv.3（1024M/4096M）或 Lv.4（16384M）
 ecoaegtnh.estorage_cell.used.tip=已用：
 ecoaegtnh.estorage_cell.bytes.tip=字节
 ecoaegtnh.estorage_cell.types.tip=类型：
@@ -83,9 +80,6 @@ ecoaegtnh.waila.ecal.drive.bytes=容量：%s AE 字节
 # ------------------------------------------------------------------
 # 控制器（GT 机器方块名使用 gt.blockmachines.<内部名>.name）
 # ------------------------------------------------------------------
-gt.blockmachines.estorage.array.l4.name=ECO 存储阵列 (L4)
-gt.blockmachines.estorage.array.l6.name=ECO 存储阵列 (L6)
-gt.blockmachines.estorage.array.l9.name=ECO 存储阵列 (L9)
 # t51（里程碑）：唯一阵列控制器显示名（去档位）——双键覆盖 GT 前缀机制两种可能
 gt.blockmachines.estorage.array.name=ECO 存储阵列
 gt.blockmachines.ecoaegtnh.estorage.array.name=ECO 存储阵列
@@ -171,15 +165,15 @@ item.ecoaegtnh.storage_component_essentia_4096m.name=ECO 4096m ME 存储组件�
 item.ecoaegtnh.storage_component_essentia_16384m.name=ECO 16384m ME 存储组件（源质）
 item.ecoaegtnh.storage_component_essentia_universe.name=ECO 人造宇宙 ME 存储组件（源质）
 item.ecoaegtnh.storage_component_essentia_arcane.name=ECO 魔导 ME 存储组件（源质）
-item.ecoaegtnh.storage_housing_item_l4.name=ECO L4 存储外壳（物品）
-item.ecoaegtnh.storage_housing_item_l6.name=ECO L6 存储外壳（物品）
-item.ecoaegtnh.storage_housing_item_l9.name=ECO L9 存储外壳（物品）
-item.ecoaegtnh.storage_housing_fluid_l4.name=ECO L4 存储外壳（流体）
-item.ecoaegtnh.storage_housing_fluid_l6.name=ECO L6 存储外壳（流体）
-item.ecoaegtnh.storage_housing_fluid_l9.name=ECO L9 存储外壳（流体）
-item.ecoaegtnh.storage_housing_essentia_l4.name=ECO L4 存储外壳（源质）
-item.ecoaegtnh.storage_housing_essentia_l6.name=ECO L6 存储外壳（源质）
-item.ecoaegtnh.storage_housing_essentia_l9.name=ECO L9 存储外壳（源质）
+item.ecoaegtnh.storage_housing_item_l4.name=ECO 存储外壳 Mk.I（物品）
+item.ecoaegtnh.storage_housing_item_l6.name=ECO 存储外壳 Mk.II（物品）
+item.ecoaegtnh.storage_housing_item_l9.name=ECO 存储外壳 Mk.III（物品）
+item.ecoaegtnh.storage_housing_fluid_l4.name=ECO 存储外壳 Mk.I（流体）
+item.ecoaegtnh.storage_housing_fluid_l6.name=ECO 存储外壳 Mk.II（流体）
+item.ecoaegtnh.storage_housing_fluid_l9.name=ECO 存储外壳 Mk.III（流体）
+item.ecoaegtnh.storage_housing_essentia_l4.name=ECO 存储外壳 Mk.I（源质）
+item.ecoaegtnh.storage_housing_essentia_l6.name=ECO 存储外壳 Mk.II（源质）
+item.ecoaegtnh.storage_housing_essentia_l9.name=ECO 存储外壳 Mk.III（源质）
 # t41（用户拍板）：创造页重构为 2 标签——ECO 存储 + ECO 计算（旧 machines/cells/components/housings/ecal_cores 标签键移除）
 itemGroup.ecoaegtnh.storage=ECO 存储
 itemGroup.ecoaegtnh.calc=ECO 计算
@@ -253,7 +247,7 @@ ecoaegtnh.ecal.cell.removed=已取出闪存晶阵
 # ===== E-Calculator t14（用户反馈第 5 点）：功能方块悬停 tooltip =====
 ecoaegtnh.tooltip.ecal.block.parallel_drive=并行核心驱动器：1 槽，shift+右键 放入/取出并行核心（并行核心物品提供并行计算能力，全档通用）
 ecoaegtnh.tooltip.ecal.block.thread_drive=线程核心驱动器：1 槽，shift+右键 放入/取出线程核心（线程核心物品提供线程槽位并承接 vCPU 任务，全档通用）
-ecoaegtnh.tooltip.ecal.block.cell_drive=晶阵驱动器提供闪存晶阵存储空间：1 槽，可放入分级闪存晶阵（k 级 → C4+、M 级 → C6+、大M 级 → 仅 C9）
+ecoaegtnh.tooltip.ecal.block.cell_drive=晶阵驱动器提供闪存晶阵存储空间：1 槽，可放入闪存晶阵
 ecoaegtnh.tooltip.ecal.block.me_channel=矩阵通讯接口是子系统与 ME 网络的协议兼容层：连接 ME 线缆以接入合成任务（vCPU 经此对外提供），不消耗额外能源
 ecoaegtnh.tooltip.ecal.block.transmitter_bus=超导晶阵传输总线：扩展段内计算数据的传输通道
 ecoaegtnh.tooltip.ecal.block.casing=结构组件：构成计算主机头部与扩展段的外壳

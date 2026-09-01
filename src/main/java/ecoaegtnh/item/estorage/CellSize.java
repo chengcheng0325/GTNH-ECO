@@ -1,12 +1,14 @@
 package ecoaegtnh.item.estorage;
 
 /**
- * t76: the twelve E-Storage cell sizes, grouped into the three controller tiers.
+ * t76: the twelve E-Storage cell sizes, grouped into the three capacity bands (t122 naming:
+ * the old L4/L6/L9 controller-tier names are gone; the bands are k / M / big-M and map 1:1 to
+ * the Mk.I / Mk.II / Mk.III storage housings).
  * <p>
- * Tier mapping (user-confirmed): L4 = k-level (256k / 1024k / 4096k), L6 = 16M / 64M / 256M
- * (re-tiered — these were L4/L6/L9 before t76), L9 = 1024M / 4096M / 16384M (+ the t113
- * Artificial-Universe tier, also L9; t114 adds the family-exclusive INF_WATER fluid cell and
- * ARCANE essentia cell, both L9).
+ * Band mapping (user-confirmed): k-level = 256k / 1024k / 4096k, M-level = 16M / 64M / 256M
+ * (re-tiered — these were L4/L6/L9 before t76), big-M = 1024M / 4096M / 16384M (+ the t113
+ * Artificial-Universe tier, also big-M; t114 adds the family-exclusive INF_WATER fluid cell and
+ * ARCANE essentia cell, both big-M).
  * <p>
  * Capacity: k-level cells use {@code totalBytes = value x 1024} (256k = 262,144 B), M-level cells
  * keep the old ECO {@code value x 1000 x 1024} (16M = 16,384,000 B) — the size order is strictly
@@ -20,19 +22,19 @@ package ecoaegtnh.item.estorage;
  */
 public enum CellSize {
 
-    // L4 (TIER_A): k-level, totalBytes = value x 1024
+    // k-level band (band 0): totalBytes = value x 1024
     K_256("256k", 256, true, 1, 0, 256L * 1024),
     K_1024("1024k", 1024, true, 2, 0, 1024L * 1024),
     K_4096("4096k", 4096, true, 4, 0, 4096L * 1024),
-    // L6 (TIER_B): M-level (re-tiered, t76), totalBytes = value x 1000 x 1024
+    // M-level band (band 1, re-tiered t76): totalBytes = value x 1000 x 1024
     M_16("16m", 16, false, 8, 1, 16L * 1000 * 1024),
     M_64("64m", 64, false, 16, 1, 64L * 1000 * 1024),
     M_256("256m", 256, false, 32, 1, 256L * 1000 * 1024),
-    // L9 (TIER_C): big M-level
+    // big-M level band (band 2)
     M_1024("1024m", 1024, false, 64, 2, 1024L * 1000 * 1024),
     M_4096("4096m", 4096, false, 128, 2, 4096L * 1000 * 1024),
     M_16384("16384m", 16384, false, 256, 2, 16384L * 1000 * 1024),
-    // t113 (user): Artificial-Universe tier (L9) — 2^59 - 1 bytes = 576,460,752,303,423,487 B
+    // t113 (user): Artificial-Universe tier (big-M) — 2^59 - 1 bytes = 576,460,752,303,423,487 B
     // (512 PiB). value stays 16384 so idleDrain (= value/4 = 4096 AE/t) matches the 16384m cell;
     // the capacity itself is the explicit totalBytes constant.
     UNIVERSE("universe", 16384, false, 512, 2, 576_460_752_303_423_487L),
@@ -120,9 +122,9 @@ public enum CellSize {
         return value / 4.0;
     }
 
-    /** Tier display label ("L4"/"L6"/"L9") for messages. */
+    /** Capacity-band display label ("Mk.I"/"Mk.II"/"Mk.III") for messages. */
     public String tierLabel() {
-        return tier == 2 ? "L9" : tier == 1 ? "L6" : "L4";
+        return tier == 2 ? "Mk.III" : tier == 1 ? "Mk.II" : "Mk.I";
     }
 
     /** M-equivalent size for display purposes (k-levels are sub-MB: 256k → 0, 1024k → 1). */

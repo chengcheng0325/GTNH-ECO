@@ -38,7 +38,7 @@ public final class RegistryItems {
     public static final Map<CellSize, ItemEcoStorageComponent> FLUID_COMPONENTS = new EnumMap<>(CellSize.class);
     public static final Map<CellSize, ItemEcoStorageComponent> ESSENTIA_COMPONENTS = new EnumMap<>(CellSize.class);
 
-    // t100: controller-tier storage housings (9; index = tier 0/1/2 = L4/L6/L9).
+    // t100: capacity-band storage housings (9; index = band 0/1/2 = Mk.I/Mk.II/Mk.III, t122 naming).
     public static final ItemEcoStorageHousing[] ITEM_HOUSINGS = new ItemEcoStorageHousing[3];
     public static final ItemEcoStorageHousing[] FLUID_HOUSINGS = new ItemEcoStorageHousing[3];
     public static final ItemEcoStorageHousing[] ESSENTIA_HOUSINGS = new ItemEcoStorageHousing[3];

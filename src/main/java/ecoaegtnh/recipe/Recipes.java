@@ -36,7 +36,7 @@ import gregtech.api.util.recipe.Scanning;
  * <p>
  * 配方写法的完整教学见 {@code docs/RECIPE_WRITING_GUIDE.md}（中文）。
  * <p>
- * t114o（用户）：配方体系重做——存储盘 = 外壳 + 组件的工作台无序合成；256k 组件 + L4 外壳
+ * t114o（用户）：配方体系重做——存储盘 = 外壳 + 组件的工作台无序合成；256k 组件 + Mk.I 外壳
  * 各有物品/流体/源质 6 条组装机配方；另保留用户逐条重做的 6 个配方（外壳/驱动器/电容/
  * ME总线/通风口组装机 + 控制器工作台合成）。E-Calculator 全部配方（ecal.*）已删除，
  * 等待用户重新设计。
@@ -79,10 +79,10 @@ public final class Recipes {
     }
 
     // ------------------------------------------------------------------
-    // 存储盘（27 个）——外壳(类型,等级) + 组件(类型,尺寸) 的工作台无序合成。
+    // 存储盘（27 个）——外壳(类型,容量段) + 组件(类型,尺寸) 的工作台无序合成。
     // t114o（用户）：盘配方从组装机/装配线改为"组件 + 外壳"无序合成（ShapelessOreRecipe）。
-    // 外壳等级对应：k 级 256k/1024k/4096k → L4 外壳、M 级 16M/64M/256M → L6 外壳、
-    // 大 M 级 1024M/4096M/16384M → L9 外壳。
+    // 外壳容量段对应（t122 命名）：k 级 256k/1024k/4096k → Mk.I 外壳、M 级 16M/64M/256M →
+    // Mk.II 外壳、大 M 级 1024M/4096M/16384M → Mk.III 外壳。
     // ------------------------------------------------------------------
     private static void registerCells() {
         for (StorageType type : StorageType.values()) {
@@ -106,7 +106,7 @@ public final class Recipes {
     }
 
     // ------------------------------------------------------------------
-    // t114o（用户）：256k 组件（物品/流体/源质）+ L4 外壳（物品/流体/源质）共 6 条配方——
+    // t114o（用户）：256k 组件（物品/流体/源质）+ Mk.I 外壳（物品/流体/源质）共 6 条配方——
     // 给保留的存储盘配方（registerCells）提供外壳/组件输入。全部 EV 1920 EU/t、10 秒、
     // 焊锡 144mb；外壳配方带编程电路（1/2/3），组件配方无电路。
     // 输入物品均为用户从游戏（NEI）复制的 id，经 findItemStack 按注册名运行时解析。
@@ -174,7 +174,7 @@ public final class Recipes {
             TierEU.RECIPE_EV,
             10 * SECONDS);
 
-        // L4 物品外壳（电路 1）：进阶电路 ×2 + gt.metaitem.01/17030 ×3 + /17516 ×1 +
+        // Mk.I 物品外壳（电路 1）：进阶电路 ×2 + gt.metaitem.01/17030 ×3 + /17516 ×1 +
         // /27516 ×2 + 逻辑处理器 + 计算处理器。
         tryAddAssembler(
             "estorage.housing_item_l4",
@@ -199,7 +199,7 @@ public final class Recipes {
             TierEU.RECIPE_EV,
             10 * SECONDS);
 
-        // L4 流体外壳（电路 2）：输入同物品外壳（17030×3 / 17516 / 27516×2 + 逻辑/计算处理器），
+        // Mk.I 流体外壳（电路 2）：输入同物品外壳（17030×3 / 17516 / 27516×2 + 逻辑/计算处理器），
         // 但工程处理器换成 24 号（工程处理器）×1、计算处理器 23 ×1。
         tryAddAssembler(
             "estorage.housing_fluid_l4",
@@ -224,7 +224,7 @@ public final class Recipes {
             TierEU.RECIPE_EV,
             10 * SECONDS);
 
-        // L4 源质外壳（电路 3）：进阶电路 ×2 + 17030 ×3 + 17516 + 27516 ×2 + 工程处理器
+        // Mk.I 源质外壳（电路 3）：进阶电路 ×2 + 17030 ×3 + 17516 + 27516 ×2 + 工程处理器
         // + 计算处理器。
         tryAddAssembler(
             "estorage.housing_essentia_l4",
@@ -249,7 +249,7 @@ public final class Recipes {
             TierEU.RECIPE_EV,
             10 * SECONDS);
 
-        // ---------- L6 外壳（ZPM，5s，无流体，电路 1/2/3） ----------
+        // ---------- Mk.II 外壳（ZPM，5s，无流体，电路 1/2/3） ----------
         // 输入：终极电路×2 + metaitem.01/17317×3 + /17516 + /27516×2 + 逻辑处理器×4 + 计算处理器×4
         tryAddAssembler(
             "estorage.housing_item_l6",
@@ -318,7 +318,7 @@ public final class Recipes {
             TierEU.RECIPE_ZPM,
             5 * SECONDS);
 
-        // ---------- L9 外壳（UV，5s，无流体，电路 1/2/3） ----------
+        // ---------- Mk.III 外壳（UV，5s，无流体，电路 1/2/3） ----------
         // 输入：超导电路×2 + metaitem.01/17129×3 + /17516 + /27516×2 + 逻辑处理器×8 + 计算处理器×8
         tryAddAssembler(
             "estorage.housing_item_l9",

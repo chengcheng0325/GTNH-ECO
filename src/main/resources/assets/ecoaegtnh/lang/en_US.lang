@@ -1,4 +1,4 @@
-itemGroup.ecoaegtnh=ECO AE Extension
+﻿itemGroup.ecoaegtnh=ECO AE Extension
 
 # ------------------------------------------------------------------
 # Blocks
@@ -46,14 +46,11 @@ item.ecoaegtnh.estorage_cell_essentia_universe.name=ECO Artificial Universe Esse
 item.ecoaegtnh.estorage_cell_essentia_arcane.name=ECO Arcane Essentia Cell
 
 # Cell tooltips
-ecoaegtnh.estorage_cell.infinite_water.tip=§bUnlimited capacity · water only
-ecoaegtnh.estorage_cell.arcane.tip=§dUnlimited capacity · all essentia aspects
+ecoaegtnh.estorage_cell.infinite_water.tip=§bInfinite Water
+ecoaegtnh.estorage_cell.arcane.tip=§dInfinite Essentia
 ecoaegtnh.estorage_cell.insert.tip=Place in an E-Storage Drive Bay to attach it to the ME network
 ecoaegtnh.estorage_cell.interact.tip=Sneak right-click a Drive Bay to insert or remove this cell
-ecoaegtnh.estorage_cell.extract.tip=Requires an ME network connection for power
 # t53: milestone-line gates replace the L4/L6/L9 controller wording
-ecoaegtnh.estorage_cell.l6.tip=Requires Lv.2+ on this line (item/fluid/essentia lines level up independently)
-ecoaegtnh.estorage_cell.l9.tip=Requires Lv.3 (1024M/4096M) or Lv.4 (16384M) on this line
 ecoaegtnh.estorage_cell.used.tip=Used:
 ecoaegtnh.estorage_cell.bytes.tip=bytes
 ecoaegtnh.estorage_cell.types.tip=Types:
@@ -84,9 +81,6 @@ ecoaegtnh.waila.ecal.drive.bytes=Capacity: %s AE bytes
 # ------------------------------------------------------------------
 # Controllers (GT machine block names use gt.blockmachines.<internal>.name)
 # ------------------------------------------------------------------
-gt.blockmachines.estorage.array.l4.name=ECO E-Storage Array (L4)
-gt.blockmachines.estorage.array.l6.name=ECO E-Storage Array (L6)
-gt.blockmachines.estorage.array.l9.name=ECO E-Storage Array (L9)
 # t51 (milestone): single array controller display name (no tier) — both key forms covered
 gt.blockmachines.estorage.array.name=ECO E-Storage Array
 gt.blockmachines.ecoaegtnh.estorage.array.name=ECO E-Storage Array
@@ -172,15 +166,15 @@ item.ecoaegtnh.storage_component_essentia_4096m.name=ECO 4096m ME Storage Compon
 item.ecoaegtnh.storage_component_essentia_16384m.name=ECO 16384m ME Storage Component (Essentia)
 item.ecoaegtnh.storage_component_essentia_universe.name=ECO Artificial Universe ME Storage Component (Essentia)
 item.ecoaegtnh.storage_component_essentia_arcane.name=ECO Arcane ME Storage Component (Essentia)
-item.ecoaegtnh.storage_housing_item_l4.name=ECO L4 Storage Housing (Item)
-item.ecoaegtnh.storage_housing_item_l6.name=ECO L6 Storage Housing (Item)
-item.ecoaegtnh.storage_housing_item_l9.name=ECO L9 Storage Housing (Item)
-item.ecoaegtnh.storage_housing_fluid_l4.name=ECO L4 Storage Housing (Fluid)
-item.ecoaegtnh.storage_housing_fluid_l6.name=ECO L6 Storage Housing (Fluid)
-item.ecoaegtnh.storage_housing_fluid_l9.name=ECO L9 Storage Housing (Fluid)
-item.ecoaegtnh.storage_housing_essentia_l4.name=ECO L4 Storage Housing (Essentia)
-item.ecoaegtnh.storage_housing_essentia_l6.name=ECO L6 Storage Housing (Essentia)
-item.ecoaegtnh.storage_housing_essentia_l9.name=ECO L9 Storage Housing (Essentia)
+item.ecoaegtnh.storage_housing_item_l4.name=ECO Storage Housing Mk.I (Item)
+item.ecoaegtnh.storage_housing_item_l6.name=ECO Storage Housing Mk.II (Item)
+item.ecoaegtnh.storage_housing_item_l9.name=ECO Storage Housing Mk.III (Item)
+item.ecoaegtnh.storage_housing_fluid_l4.name=ECO Storage Housing Mk.I (Fluid)
+item.ecoaegtnh.storage_housing_fluid_l6.name=ECO Storage Housing Mk.II (Fluid)
+item.ecoaegtnh.storage_housing_fluid_l9.name=ECO Storage Housing Mk.III (Fluid)
+item.ecoaegtnh.storage_housing_essentia_l4.name=ECO Storage Housing Mk.I (Essentia)
+item.ecoaegtnh.storage_housing_essentia_l6.name=ECO Storage Housing Mk.II (Essentia)
+item.ecoaegtnh.storage_housing_essentia_l9.name=ECO Storage Housing Mk.III (Essentia)
 # t41 (user decision): creative pages consolidated into two tabs — ECO Storage + ECO Calculator
 # (the old machines/cells/components/housings/ecal_cores tab keys are removed)
 itemGroup.ecoaegtnh.storage=ECO Storage
@@ -256,7 +250,7 @@ ecoaegtnh.ecal.cell.removed=Flash cell removed
 # ===== E-Calculator t14 (user feedback point 5): functional-block hover tooltips =====
 ecoaegtnh.tooltip.ecal.block.parallel_drive=Parallel-core drive: 1 slot, shift+right-click to insert/remove a parallel core (the core item supplies parallelism; any tier)
 ecoaegtnh.tooltip.ecal.block.thread_drive=Thread-core drive: 1 slot, shift+right-click to insert/remove a thread core (the core item supplies thread slots and hosts vCPU tasks; any tier)
-ecoaegtnh.tooltip.ecal.block.cell_drive=Cell drive: provides flash-cell storage space — 1 slot, accepts tiered flash cells (k-level → C4+, M-level → C6+, big-M → C9 only)
+ecoaegtnh.tooltip.ecal.block.cell_drive=Cell Drive provides flash cell array storage: 1 slot, insert flash cells
 ecoaegtnh.tooltip.ecal.block.me_channel=ME matrix communication interface: the protocol-compatibility layer between the subsystem and the ME network — connect ME cables to accept crafting jobs (vCPUs are exposed through it), no extra power draw
 ecoaegtnh.tooltip.ecal.block.transmitter_bus=Superconducting crystal-array bus: carries computation data within a segment
 ecoaegtnh.tooltip.ecal.block.casing=Structural component: forms the host head and the segment shell

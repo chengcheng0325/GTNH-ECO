@@ -680,14 +680,15 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         // in-flight cluster per thread core, then notify the grid (no NPE/leak: the M1 destroy
         // mixin routes each destroy to its core's onCPUDestroyed, which unregisters and notifies).
         destroyStandbyVCPU();
-        // t114g: built-in slot clusters are destroyed through the same hook (onClusterReleased).
+        // t118 (user report): built-in slot clusters must be CANCELLED (AE2U cancel() refunds the
+        // job's materials into the grid via postChange), then destroyed — previously they were only
+        // markDestroyed()+cleared, which swallowed the in-flight job's materials. Same order as the
+        // external thread drives (onControllerDisassembled: cancel → destroy).
         for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinThreadClusters)) {
-            ECPUCluster.from(cluster)
-                .ecoaegtnh$markDestroyed();
+            cancelAndDestroyBuiltin(cluster);
         }
         for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinHyperClusters)) {
-            ECPUCluster.from(cluster)
-                .ecoaegtnh$markDestroyed();
+            cancelAndDestroyBuiltin(cluster);
         }
         builtinThreadClusters.clear();
         builtinHyperClusters.clear();
@@ -730,6 +731,23 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         prevParallelDrives.clear();
         prevThreadCores.clear();
         prevChannel = null;
+    }
+
+    /**
+     * t118: cancel (refund job materials into the grid) then destroy a built-in-slot cluster during
+     * controller teardown. destroy() routes through the M1 injectDestroy hook → onClusterReleased
+     * (releases the thread slot + vCPU number, idempotent). Mirrors TileEcalThreadDrive.
+     * onControllerDisassembled's cancel-then-destroy order.
+     */
+    private void cancelAndDestroyBuiltin(CraftingCPUCluster cluster) {
+        try {
+            cluster.cancel();
+        } catch (Exception e) {
+            LOG.warn("Ecal: cancel during disassembly failed for a built-in cluster", e);
+        }
+        ECPUCluster.from(cluster)
+            .ecoaegtnh$markDestroyed();
+        cluster.destroy();
     }
 
     @Override

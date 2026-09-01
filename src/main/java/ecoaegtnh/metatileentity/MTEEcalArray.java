@@ -1279,8 +1279,9 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             recalculateTotalBytes();
             createVirtualCPU();
         }
-        // Perf summary every 200 ticks (phase B deliverable: task execution observability).
-        if (worldTime % 200 == 0) {
+        // Perf summary every 600 ticks (t115: was 200 — several hosts on one server spammed INFO;
+        // 600t = 30s keeps it observable without log noise).
+        if (worldTime % 600 == 0) {
             int clusters = 0;
             long totalUs = 0;
             for (TileEcalThreadDrive core : threadCores) {

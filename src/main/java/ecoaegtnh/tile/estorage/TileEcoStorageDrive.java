@@ -113,6 +113,9 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
         if (slot != 0 || cellStack == null) return null;
         ItemStack result = cellStack;
         cellStack = null;
+        // t115 (perf): keep the handler cache event-driven (this path has no Container in practice,
+        // but must not leave a stale handler behind).
+        onCellChanged();
         return result;
     }
 

@@ -836,13 +836,10 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
             aBaseMetaTileEntity.setShutDownReason(gregtech.api.util.shutdown.ShutDownReasonRegistry.NONE);
             aBaseMetaTileEntity.setShutdownStatus(false);
         }
-        // Every 5 ticks: update drive write states + capacitance recalc.
-        if (aBaseMetaTileEntity.getWorld()
-            .getTotalWorldTime() % 5 == 0) {
-            for (TileEcoStorageDrive drive : driveBays) {
-                drive.invalidateHandlers();
-            }
-        }
+        // t115 (perf): drive handler caches are now purely event-driven — every cellStack change
+        // path (setInventorySlotContents / decrStackSize / getStackInSlotOnClosing / interactWithCell
+        // / readFromNBT) invalidates the cached IMEInventoryHandlers via onCellChanged, so the
+        // periodic full rebuild below is removed (reference: ae2fc caches once per cell change).
         // t32: pure AE power — no GT EU path. All power is drawn from / supplied to the AE grid
         // through the ME bus (TileEcoStorageMEBus is the IAEPowerStorage endpoint; the controller
         // aggregates the capacitance cells' AE energy).

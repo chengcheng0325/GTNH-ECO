@@ -85,9 +85,9 @@ public class EcoAEGTNHCore {
             @Override
             @SuppressWarnings({ "rawtypes", "unchecked" })
             public void displayAllReleventItems(List list) {
-                // Machines: the ONE Storage Array controller (t52 — the L6/L9 tier machines
-                // are removed by the milestone system; their registration cleanup is the T51
-                // pass) + drive bay, casing, capacitance, ME bus, vent.
+                // Machines: the ONE Storage Array controller (t52 — the tiered machines are
+                // merged into a single controller by the milestone/upgrade-tree system) + drive
+                // bay, casing, capacitance, ME bus, vent.
                 if (ecoaegtnh.registry.RegistryMTE.L4 != null) {
                     list.add(ecoaegtnh.registry.RegistryMTE.L4.getStackForm(1));
                 }

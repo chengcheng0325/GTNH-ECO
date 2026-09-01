@@ -3,9 +3,9 @@
 	"modList": [{
 		"modid": "${modId}",
 		"name": "${modName}",
-		"description": "ECO AE Extension (GTNH): a GTNH 1.7.10 addon that ports the NovaEngineering E-Storage Array concept to GT5-Unofficial multiblocks with AE2U storage integration. Adds the ECO E-Storage Array (L4/L6/L9) multiblock with expandable drive columns, storage cells (item/fluid/essentia 16M/64M/256M), ME bus grid connection and a storage statistics GUI. Essentia cells store Thaumcraft 4 essentia via ThaumicEnergistics. Recipes are registered through the GT assembler.",
+		"description": "ECO AE Extension (GTNH): a GTNH 1.7.10 addon that ports the NovaEngineering E-Storage Array and E-Calculator concepts to GT5-Unofficial multiblocks with AE2U integration. Adds the ECO E-Storage Array multiblock with expandable drive columns and storage cells (item/fluid/essentia), plus the ECO Extensible Computation Subsystem (vCPU crafting via the ME network). Essentia cells store Thaumcraft 4 essentia via ThaumicEnergistics. Recipes are registered through the GT assembler.",
 		"credits": "Reference design: NovaEngineering-ECOAEExtension (sddsd2332, Kasumi_Nova, WI_8614_ice)",
-		"license": "GPL-3.0",
+		"license": "LGPL-3.0",
 		"logoFile": "",
 		"version": "0.0.1",
 		"mcversion": "${minecraftVersion}",

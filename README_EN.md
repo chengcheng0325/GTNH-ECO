@@ -76,8 +76,8 @@ casing, drive bay, capacitance (A/B/C), vent, ME bus. Powered by the ME network,
 | Fluid cells | same 10 tiers + **Infinite Water** |
 | Essentia cells (requires ThaumicEnergistics) | same 10 tiers + **Arcane** |
 
-Matching ME Storage Components (crafting materials) and L4 / L6 / L9 Storage Housings
-(item / fluid / essentia) are craftable as well.
+Matching ME Storage Components (crafting materials) and Storage Housings **Mk.I / Mk.II /
+Mk.III** (item / fluid / essentia, the k / M / big-M capacity bands) are craftable as well.
 
 ### Upgrade Tree (milestone lines)
 

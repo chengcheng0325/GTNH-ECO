@@ -57,7 +57,8 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
 
 /**
- * ECO E-Storage Array controller (GT multiblock), L4/L6/L9 = tiers A/B/C.
+ * ECO E-Storage Array controller (GT multiblock); capacity bands k / M / big-M
+ * (t122 naming: the L4/L6/L9 controller tiers are gone).
  * <p>
  * Structure per DESIGN.md §1.7/§2.5 (t30 layout, user-confirmed): the controller anchor is the
  * head's front slice; the 1..12 drive columns extend to the RIGHT of the controller (the facing's
@@ -79,9 +80,9 @@ import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
  */
 public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalConstructable {
 
-    public static final int TIER_A = 0; // L4
-    public static final int TIER_B = 1; // L6
-    public static final int TIER_C = 2; // L9
+    public static final int TIER_A = 0; // k-level band (Mk.I)
+    public static final int TIER_B = 1; // M-level band (Mk.II)
+    public static final int TIER_C = 2; // big-M level band (Mk.III)
 
     /** Structure piece name prefix; shapes "size1".."size12". */
     private static final String PIECE_PREFIX = "size";

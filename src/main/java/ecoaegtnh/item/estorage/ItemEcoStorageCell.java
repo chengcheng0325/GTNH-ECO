@@ -17,9 +17,9 @@ import ecoaegtnh.EcoAEGTNHCore;
 import ecoaegtnh.ae2.EcoStorageCellInventory;
 
 /**
- * Abstract ECO E-Storage cell item — ten sizes in three controller tiers (t76):
- * L4 = 256k/1024k/4096k, L6 = 16M/64M/256M, L9 = 1024M/4096M/16384M (+ t113 Artificial
- * Universe, also L9). Implements AE2U's {@link IStorageCell}.
+ * Abstract ECO E-Storage cell item — ten sizes in three capacity bands (t76):
+ * k-level = 256k/1024k/4096k, M-level = 16M/64M/256M, big-M level = 1024M/4096M/16384M
+ * (+ t113 Artificial Universe, also big-M). Implements AE2U's {@link IStorageCell}.
  * <p>
  * Capacity follows the old ECO design (t68): k-level totalBytes = value x 1024, M-level
  * totalBytes = value x 1000 x 1024; perType = byteMultiplier x 1024 (see {@link CellSize}).
@@ -194,12 +194,9 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
         super.addInformation(stack, player, lines, advanced);
         lines.add(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.estorage_cell.insert.tip"));
         lines.add(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.estorage_cell.interact.tip"));
-        lines.add(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.estorage_cell.extract.tip"));
-        // Tier hints: 256M (C) needs L9; 64M (B) needs L6/L9.
-        String tierHint = getTierHintKey();
-        if (tierHint != null) {
-            lines.add(net.minecraft.util.StatCollector.translateToLocal(tierHint));
-        }
+        // t115: the old "requires ME network power" and per-tier line-level hints were removed
+        // (t122 naming pass) — the insert gate already reports the exact required upgrade-tree
+        // node, and cells need no power to sit in a drive bay.
         // t114e: the infinite family-exclusive cells always show their capacity/type summary up
         // front (even if the inventory readout below hits an unexpected exception).
         if (isInfinite()) {
@@ -322,7 +319,7 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
         return size.capacityMB();
     }
 
-    /** t76: the controller tier this cell requires (k → L4, 16M..256M → L6, 1024M..16384M → L9). */
+    /** t76: the capacity band this cell belongs to (0 = k-level, 1 = M-level, 2 = big-M level). */
     public int getTierRequired() {
         return size.tier;
     }
@@ -346,16 +343,5 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
         String prefix = getStorageType() == StorageType.FLUID ? "F"
             : getStorageType() == StorageType.ESSENTIA ? "E" : "I";
         return prefix + size.chainIndex(getStorageType());
-    }
-
-    /** @return the lang key of the controller tier requirement, or null for L4-compatible cells. */
-    protected String getTierHintKey() {
-        if (size.tier == 2) {
-            return "ecoaegtnh.estorage_cell.l9.tip";
-        }
-        if (size.tier == 1) {
-            return "ecoaegtnh.estorage_cell.l6.tip";
-        }
-        return null;
     }
 }

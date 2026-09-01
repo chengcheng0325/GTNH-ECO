@@ -4,7 +4,7 @@ import ecoaegtnh.metatileentity.MTEEcoStorageArray;
 
 /**
  * Registers the E-Storage Array controller as a GT MetaTileEntity. t51 (milestone, docs
- * §4.2): the L4/L6/L9 tier machines are merged into ONE array (MTE 32030) — the milestone
+ * §4.2): the old tiered machines are merged into ONE array (MTE 32030) — the upgrade-tree
  * system (item/fluid/essentia lines) provides the progression. MTE_ID_L6/MTE_ID_L9 are
  * deprecated (no longer registered; old world blocks migrate via the FML missing-ID flow).
  * Must be called during the FML load phase (GT's preload..postload window).

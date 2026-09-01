@@ -157,9 +157,10 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     }
 
     /**
-     * Minimum controller tier required by a cell (t76 tier map): k-level (256k/1024k/4096k) → L4
-     * (TIER_A), 16M/64M/256M → L6 (TIER_B), 1024M/4096M/16384M → L9 (TIER_C). Returns -1 for
-     * non-ECO items. Kept for compatibility (the milestone gate below supersedes it).
+     * Minimum capacity band required by a cell (t76 band map, t122 naming): k-level
+     * (256k/1024k/4096k) → band 0, 16M/64M/256M → band 1, 1024M/4096M/16384M → band 2.
+     * Returns -1 for non-ECO items. Kept for compatibility (the milestone gate below
+     * supersedes it).
      */
     public static int requiredTier(ItemStack stack) {
         if (stack == null || !(stack.getItem() instanceof ecoaegtnh.item.estorage.ItemEcoStorageCell cell)) {
@@ -169,8 +170,8 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     }
 
     /**
-     * Static tier gate (t62): true when the stack is an ECO cell allowed on the given controller
-     * tier. Kept for compatibility (the milestone gate below supersedes it).
+     * Static band gate (t62): true when the stack is an ECO cell allowed on the given controller
+     * band. Kept for compatibility (the milestone gate below supersedes it).
      */
     public static boolean isSupportedByTier(ItemStack stack, int tier) {
         int required = requiredTier(stack);

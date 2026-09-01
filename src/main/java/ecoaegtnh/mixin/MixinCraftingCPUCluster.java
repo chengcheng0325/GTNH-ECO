@@ -71,6 +71,13 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Unique
     private int ecoaegtnh$vcpuId = 0;
 
+    /**
+     * t116: set when this submitJob call was a merge into the running job — the RETURN injector
+     * must skip the thread-slot assignment (the cluster is already assigned).
+     */
+    @Unique
+    private boolean ecoaegtnh$mergedJob = false;
+
     @Unique
     private final EcoTimeRecorder ecoaegtnh$timeRecorder = new EcoTimeRecorder();
 
@@ -107,6 +114,13 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Shadow
     public abstract void cancel();
 
+    /** t116: busy/current-output accessors for the merge branch (AE2U public methods). */
+    @Shadow
+    public abstract boolean isBusy();
+
+    @Shadow
+    public abstract appeng.api.storage.data.IAEStack<?> getFinalMultiOutput();
+
     @Final
     @Shadow
     private int[] usedOps;
@@ -130,6 +144,32 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
         if (this.ecoaegtnh$virtualCPUOwner == null || job == null) {
             return;
         }
+        // t116 (user): merge a repeated request for the SAME output into the running vCPU instead of
+        // occupying another thread slot — mirrors AE2U's vanilla merge condition, but against the
+        // controller byte POOL (vCPU availableStorage is task-bytes semantics, so the vanilla
+        // condition can never hold for us). Must run BEFORE the t114g byte precheck.
+        if (this.isBusy() && this.myLastLink != null
+            && this.myLastLink.isStandalone()
+            && this.getFinalMultiOutput() != null
+            && this.getFinalMultiOutput()
+                .isSameType(job.getOutput())) {
+            long extra = this.ecoaegtnh$hyperAssigned && !this.ecoaegtnh$virtualCPUOwner.isOverclocked()
+                ? job.getByteTotal() / 10
+                : 0;
+            if (this.ecoaegtnh$virtualCPUOwner.getAvailableBytes() >= job.getByteTotal() + extra) {
+                ICraftingLink link = ((CraftingCPUCluster) (Object) this).mergeJob(g, job, src, requestingMachine);
+                if (link != null) {
+                    // Keep the "task-bytes" availableStorage semantics so the thread-drive pool
+                    // accounting (Σ availableStorage) stays correct: add the merged bytes (+ hyper
+                    // reserve) to this cluster's share.
+                    this.ecoaegtnh$usedExtraStorage += extra;
+                    this.availableStorage += job.getByteTotal() + extra;
+                    this.ecoaegtnh$mergedJob = true;
+                    cir.setReturnValue(link);
+                    return;
+                }
+            }
+        }
         long need = job.getByteTotal() * 11 / 10; // raw bytes + 10% hyper reserve
         if (need > getAvailableStorage()) {
             cir.setReturnValue(null);
@@ -141,6 +181,12 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     private void ecoaegtnh$injectSubmitJob(final IGrid g, final ICraftingJob job, final BaseActionSource src,
         final ICraftingRequester requestingMachine, final CallbackInfoReturnable<ICraftingLink> cir) {
         if (this.ecoaegtnh$core != null || this.ecoaegtnh$virtualCPUOwner == null) {
+            return;
+        }
+        if (this.ecoaegtnh$mergedJob) {
+            // t116: this call was a merge into the running job — the cluster is already assigned to
+            // its thread slot; do NOT re-assign (would double-add / double-count the vCPU).
+            this.ecoaegtnh$mergedJob = false;
             return;
         }
         if (cir.getReturnValue() == null) {

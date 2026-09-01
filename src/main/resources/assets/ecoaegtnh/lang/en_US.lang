@@ -1,0 +1,539 @@
+itemGroup.ecoaegtnh=ECO AE Extension
+
+# ------------------------------------------------------------------
+# Blocks
+# ------------------------------------------------------------------
+tile.ecoaegtnh.storage_array_casing.name=Storage Array Casing
+tile.ecoaegtnh.storage_array_drive.name=Storage Array Drive Bay
+tile.ecoaegtnh.storage_array_capacitance.name=Storage Array Capacitance
+tile.ecoaegtnh.storage_array_vent.name=Storage Array Vent
+tile.ecoaegtnh.storage_array_me_bus.name=Storage Array ME Bus
+
+# ------------------------------------------------------------------
+# Storage cells
+# ------------------------------------------------------------------
+item.ecoaegtnh.estorage_cell_item_256k.name=ECO E-Storage Item Cell (256k)
+item.ecoaegtnh.estorage_cell_item_1024k.name=ECO E-Storage Item Cell (1024k)
+item.ecoaegtnh.estorage_cell_item_4096k.name=ECO E-Storage Item Cell (4096k)
+item.ecoaegtnh.estorage_cell_item_16m.name=ECO E-Storage Item Cell (16M)
+item.ecoaegtnh.estorage_cell_item_64m.name=ECO E-Storage Item Cell (64M)
+item.ecoaegtnh.estorage_cell_item_256m.name=ECO E-Storage Item Cell (256M)
+item.ecoaegtnh.estorage_cell_item_1024m.name=ECO E-Storage Item Cell (1024M)
+item.ecoaegtnh.estorage_cell_item_4096m.name=ECO E-Storage Item Cell (4096M)
+item.ecoaegtnh.estorage_cell_item_16384m.name=ECO E-Storage Item Cell (16384M)
+item.ecoaegtnh.estorage_cell_item_universe.name=ECO Artificial Universe Item Cell
+item.ecoaegtnh.estorage_cell_fluid_256k.name=ECO E-Storage Fluid Cell (256k)
+item.ecoaegtnh.estorage_cell_fluid_1024k.name=ECO E-Storage Fluid Cell (1024k)
+item.ecoaegtnh.estorage_cell_fluid_4096k.name=ECO E-Storage Fluid Cell (4096k)
+item.ecoaegtnh.estorage_cell_fluid_16m.name=ECO E-Storage Fluid Cell (16M)
+item.ecoaegtnh.estorage_cell_fluid_64m.name=ECO E-Storage Fluid Cell (64M)
+item.ecoaegtnh.estorage_cell_fluid_256m.name=ECO E-Storage Fluid Cell (256M)
+item.ecoaegtnh.estorage_cell_fluid_1024m.name=ECO E-Storage Fluid Cell (1024M)
+item.ecoaegtnh.estorage_cell_fluid_4096m.name=ECO E-Storage Fluid Cell (4096M)
+item.ecoaegtnh.estorage_cell_fluid_16384m.name=ECO E-Storage Fluid Cell (16384M)
+item.ecoaegtnh.estorage_cell_fluid_universe.name=ECO Artificial Universe Fluid Cell
+item.ecoaegtnh.estorage_cell_fluid_infwater.name=ECO Infinite Water Fluid Cell
+item.ecoaegtnh.estorage_cell_essentia_256k.name=ECO E-Storage Essentia Cell (256k)
+item.ecoaegtnh.estorage_cell_essentia_1024k.name=ECO E-Storage Essentia Cell (1024k)
+item.ecoaegtnh.estorage_cell_essentia_4096k.name=ECO E-Storage Essentia Cell (4096k)
+item.ecoaegtnh.estorage_cell_essentia_16m.name=ECO E-Storage Essentia Cell (16M)
+item.ecoaegtnh.estorage_cell_essentia_64m.name=ECO E-Storage Essentia Cell (64M)
+item.ecoaegtnh.estorage_cell_essentia_256m.name=ECO E-Storage Essentia Cell (256M)
+item.ecoaegtnh.estorage_cell_essentia_1024m.name=ECO E-Storage Essentia Cell (1024M)
+item.ecoaegtnh.estorage_cell_essentia_4096m.name=ECO E-Storage Essentia Cell (4096M)
+item.ecoaegtnh.estorage_cell_essentia_16384m.name=ECO E-Storage Essentia Cell (16384M)
+item.ecoaegtnh.estorage_cell_essentia_universe.name=ECO Artificial Universe Essentia Cell
+item.ecoaegtnh.estorage_cell_essentia_arcane.name=ECO Arcane Essentia Cell
+
+# Cell tooltips
+ecoaegtnh.estorage_cell.infinite_water.tip=§bUnlimited capacity · water only
+ecoaegtnh.estorage_cell.arcane.tip=§dUnlimited capacity · all essentia aspects
+ecoaegtnh.estorage_cell.insert.tip=Place in an E-Storage Drive Bay to attach it to the ME network
+ecoaegtnh.estorage_cell.interact.tip=Sneak right-click a Drive Bay to insert or remove this cell
+ecoaegtnh.estorage_cell.extract.tip=Requires an ME network connection for power
+# t53: milestone-line gates replace the L4/L6/L9 controller wording
+ecoaegtnh.estorage_cell.l6.tip=Requires Lv.2+ on this line (item/fluid/essentia lines level up independently)
+ecoaegtnh.estorage_cell.l9.tip=Requires Lv.3 (1024M/4096M) or Lv.4 (16384M) on this line
+ecoaegtnh.estorage_cell.used.tip=Used:
+ecoaegtnh.estorage_cell.bytes.tip=bytes
+ecoaegtnh.estorage_cell.types.tip=Types:
+
+# Drive bay interactions
+ecoaegtnh.drive.cell.inserted=Storage cell inserted
+ecoaegtnh.drive.cell.removed=Storage cell removed
+# t62 (user preference): insert gating — array must be formed; tier gate with required tier
+ecoaegtnh.drive.cell.not_formed=The array must be formed before inserting a storage cell
+ecoaegtnh.drive.cell.tier_not_supported=This storage cell requires an %s controller (array tier too low)
+ecoaegtnh.drive.cell.node_not_supported=Unlock upgrade-tree node %s first (item/fluid/essentia chain)
+
+# WAILA (drive bay)
+ecoaegtnh.waila.drive.cell=Cell:
+ecoaegtnh.waila.drive.empty=Empty
+ecoaegtnh.waila.drive.kind.item=Item
+ecoaegtnh.waila.drive.kind.fluid=Fluid
+ecoaegtnh.waila.drive.kind.essentia=Essentia
+ecoaegtnh.waila.drive.kind.line=%s Cell %dM
+# WAILA (E-Calculator drives, t43)
+ecoaegtnh.waila.ecal.drive.core=Core:
+ecoaegtnh.waila.ecal.drive.empty=Empty
+ecoaegtnh.waila.ecal.drive.parallelism=Parallelism: %s
+ecoaegtnh.waila.ecal.drive.threads=Threads: %s
+ecoaegtnh.waila.ecal.drive.threads_hyper=Threads: %s (Hyper: %s)
+ecoaegtnh.waila.ecal.drive.bytes=Capacity: %s AE bytes
+
+# ------------------------------------------------------------------
+# Controllers (GT machine block names use gt.blockmachines.<internal>.name)
+# ------------------------------------------------------------------
+gt.blockmachines.estorage.array.l4.name=ECO E-Storage Array (L4)
+gt.blockmachines.estorage.array.l6.name=ECO E-Storage Array (L6)
+gt.blockmachines.estorage.array.l9.name=ECO E-Storage Array (L9)
+# t51 (milestone): single array controller display name (no tier) — both key forms covered
+gt.blockmachines.estorage.array.name=ECO E-Storage Array
+gt.blockmachines.ecoaegtnh.estorage.array.name=ECO E-Storage Array
+
+# ------------------------------------------------------------------
+# GUI
+# ------------------------------------------------------------------
+ecoaegtnh.gui.storage_stats.title=ECO E-Storage Array
+ecoaegtnh.gui.storage_stats.structure=Structure:
+ecoaegtnh.gui.storage_stats.valid=Valid
+ecoaegtnh.gui.storage_stats.invalid=Invalid
+ecoaegtnh.gui.storage_stats.drives=Drives:
+ecoaegtnh.gui.storage_stats.columns=Columns:
+ecoaegtnh.gui.storage_stats.energy=Energy:
+
+# GUI IO strip (t50, quantum-computer-style bottom status row)
+ecoaegtnh.gui.io.mebus=ME Bus:
+ecoaegtnh.gui.io.mebus.connected=Connected
+ecoaegtnh.gui.io.mebus.offline=Offline
+ecoaegtnh.gui.io.mebus.missing=Missing
+# t96: status-LED tooltip power usage (AE/t)
+ecoaegtnh.gui.io.power_usage=Power Usage:
+# t73: cell-inventory hover summary (IO LED tooltips)
+ecoaegtnh.gui.io.total_cells=Total cells
+ecoaegtnh.gui.io.item_cells=Item cells
+ecoaegtnh.gui.io.fluid_cells=Fluid cells
+ecoaegtnh.gui.io.essentia_cells=Essentia cells
+ecoaegtnh.gui.io.types=types
+ecoaegtnh.gui.io.bytes=bytes
+
+# ------------------------------------------------------------------
+# Structure description (projector chat display, t38)
+# ------------------------------------------------------------------
+ecoaegtnh.structure.desc.columns=Drive columns (1-12 units) extend to the RIGHT of the controller (its right-hand side).
+ecoaegtnh.structure.desc.column_detail=Each column: 2 deep (front-back) x 3 tall; drives on the front half, capacitance + vent on the back half.
+ecoaegtnh.structure.desc.head=Head: 2 deep x 3 tall x 2 wide; ME bus at the back-side right corner.
+ecoaegtnh.structure.desc.power=Powered by the ME network (no GT EU hatches); no maintenance required.
+ecoaegtnh.structure.desc.length=Projected/build length: hold a stack of N controller items (1-12) to preview or build an N-column structure.
+ecoaegtnh.structure.desc.current_length=Current drive column length: %s
+# t62: structure-formation upgrade-tree gate (drive bay holds a cell whose chain node is inactive)
+ecoaegtnh.structure.error.cell_tier_exceeded=Storage cell exceeds this array: unlock upgrade-tree node %s first
+
+# ------------------------------------------------------------------
+# Controller tooltip (t38)
+# ------------------------------------------------------------------
+ecoaegtnh.tooltip.machinetype=E-Storage Array
+ecoaegtnh.tooltip.info.mass_storage=Mass AE storage with drive-column expansion (1-12 columns)
+ecoaegtnh.tooltip.info.power=Powered entirely by the connected ME network (pure AE power, no GT EU)
+ecoaegtnh.tooltip.info.no_maintenance=No maintenance required
+ecoaegtnh.tooltip.controller=Middle layer; the drive columns extend to its right
+ecoaegtnh.tooltip.footer.placement=Place the controller so it faces you: drive columns extend to its right (your left), ME bus at the back-side right corner
+
+# t100: ME storage components / housings (intermediate materials) + creative tab split
+item.ecoaegtnh.storage_component_item_256k.name=ECO 256k ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_1024k.name=ECO 1024k ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_4096k.name=ECO 4096k ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_16m.name=ECO 16m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_64m.name=ECO 64m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_256m.name=ECO 256m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_1024m.name=ECO 1024m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_4096m.name=ECO 4096m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_16384m.name=ECO 16384m ME Storage Component (Item)
+item.ecoaegtnh.storage_component_item_universe.name=ECO Artificial Universe ME Storage Component (Item)
+item.ecoaegtnh.storage_component_fluid_256k.name=ECO 256k ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_1024k.name=ECO 1024k ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_4096k.name=ECO 4096k ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_16m.name=ECO 16m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_64m.name=ECO 64m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_256m.name=ECO 256m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_1024m.name=ECO 1024m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_4096m.name=ECO 4096m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_16384m.name=ECO 16384m ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_universe.name=ECO Artificial Universe ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_fluid_infwater.name=ECO Infinite Water ME Storage Component (Fluid)
+item.ecoaegtnh.storage_component_essentia_256k.name=ECO 256k ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_1024k.name=ECO 1024k ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_4096k.name=ECO 4096k ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_16m.name=ECO 16m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_64m.name=ECO 64m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_256m.name=ECO 256m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_1024m.name=ECO 1024m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_4096m.name=ECO 4096m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_16384m.name=ECO 16384m ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_universe.name=ECO Artificial Universe ME Storage Component (Essentia)
+item.ecoaegtnh.storage_component_essentia_arcane.name=ECO Arcane ME Storage Component (Essentia)
+item.ecoaegtnh.storage_housing_item_l4.name=ECO L4 Storage Housing (Item)
+item.ecoaegtnh.storage_housing_item_l6.name=ECO L6 Storage Housing (Item)
+item.ecoaegtnh.storage_housing_item_l9.name=ECO L9 Storage Housing (Item)
+item.ecoaegtnh.storage_housing_fluid_l4.name=ECO L4 Storage Housing (Fluid)
+item.ecoaegtnh.storage_housing_fluid_l6.name=ECO L6 Storage Housing (Fluid)
+item.ecoaegtnh.storage_housing_fluid_l9.name=ECO L9 Storage Housing (Fluid)
+item.ecoaegtnh.storage_housing_essentia_l4.name=ECO L4 Storage Housing (Essentia)
+item.ecoaegtnh.storage_housing_essentia_l6.name=ECO L6 Storage Housing (Essentia)
+item.ecoaegtnh.storage_housing_essentia_l9.name=ECO L9 Storage Housing (Essentia)
+# t41 (user decision): creative pages consolidated into two tabs — ECO Storage + ECO Calculator
+# (the old machines/cells/components/housings/ecal_cores tab keys are removed)
+itemGroup.ecoaegtnh.storage=ECO Storage
+itemGroup.ecoaegtnh.calc=ECO Calculator
+# ===== E-Calculator (extensible calculator subsystem, phase A, plan v1.5 §4.2 naming) =====
+tile.ecoaegtnh.ecalculator_casing.name=ECO Calculator Casing
+tile.ecoaegtnh.ecalculator_parallel_drive.name=ECO Parallel-Core Drive
+tile.ecoaegtnh.ecalculator_thread_drive.name=ECO Thread-Core Drive
+tile.ecoaegtnh.ecalculator_cell_drive.name=ECO Cell Drive
+tile.ecoaegtnh.ecalculator_me_channel.name=ECO ME Matrix Communication Interface
+tile.ecoaegtnh.ecalculator_transmitter_bus.name=ECO Superconducting Transmitter Bus
+ecoaegtnh.structure.desc.ecal_segments=Segments (1-12) extend to the controller's right-hand side (same as the Storage Array).
+ecoaegtnh.structure.desc.ecal_segment_detail=Each segment: 2 deep x 3 tall; front = 2 cell drives + transmitter bus, back = 2 parallel-core drives + 1 thread-core drive (cores are inserted into the drives as items).
+ecoaegtnh.structure.desc.ecal_head=Head: 2 deep x 3 tall x 3 wide; ME channel on the back slice (middle row, column-side corner).
+ecoaegtnh.structure.desc.ecal_power=Powered by the ME network (no GT energy hatches); no maintenance.
+ecoaegtnh.structure.desc.ecal_length=Build/preview length: hold N (1-12) controllers to preview/build N segments.
+ecoaegtnh.structure.desc.ecal_current_length=Current segments: %s
+ecoaegtnh.structure.error.controller_shared=Structure error: another ECO calculator host controller is within 2 blocks directly above/below.
+# t49 (milestone): single controller display name (no tier) — both key forms covered (t52: the old c4/c6/c9 tier keys are removed)
+gt.blockmachines.ecoaegtnh.ecalculator.array.name=ECO Extensible Calculator Subsystem Host
+gt.blockmachines.ecalculator.array.name=ECO Extensible Calculator Subsystem Host
+# t53: single host — machine-type line without the tier marker
+ecoaegtnh.tooltip.ecal.machinetype=ECO Extensible Calculator Subsystem Host
+ecoaegtnh.tooltip.ecal.info.compute=Connects to the AE2 crafting system to provide extensible computation (multiple crafting CPUs running jobs in parallel). Thread/hyper/parallel slots and the byte pool scale with the milestone line levels (feed to level up); new jobs pause when available bytes fall below 10% of the total (red line).
+ecoaegtnh.tooltip.ecal.info.power=Powered by the ME network (no GT energy hatches); no maintenance required.
+ecoaegtnh.tooltip.ecal.info.no_maintenance=No maintenance required.
+ecoaegtnh.tooltip.ecal.controller=Middle row of the head; segments extend to the controller's right
+ecoaegtnh.tooltip.ecal.footer.placement=Place the controller so its front faces you: segments extend on the controller's right (your left), ME channel at the back-right corner
+# ===== E-Calculator phase C: controller GUI (MUI1, quantum-computer style) =====
+ecoaegtnh.gui.ecal.structure=Structure:
+ecoaegtnh.gui.ecal.valid=Valid
+ecoaegtnh.gui.ecal.invalid=Invalid
+ecoaegtnh.gui.ecal.channel=ME Channel:
+ecoaegtnh.gui.ecal.channel.connected=Connected
+ecoaegtnh.gui.ecal.channel.offline=Offline
+ecoaegtnh.gui.ecal.channel.missing=Missing
+ecoaegtnh.gui.ecal.segments=Segments:
+ecoaegtnh.gui.ecal.bytes=Bytes (Used/Avail/Total):
+ecoaegtnh.gui.ecal.bytes.redline.short=red line
+ecoaegtnh.gui.ecal.parallelism=Parallelism:
+ecoaegtnh.gui.ecal.threads=Threads:
+ecoaegtnh.gui.ecal.threads.hyper=Hyper
+ecoaegtnh.gui.ecal.threads.builtin=Built-in
+ecoaegtnh.gui.ecal.threads.external=External
+ecoaegtnh.gui.ecal.threads.total=Total
+ecoaegtnh.gui.ecal.threads.hyper=Hyper
+ecoaegtnh.gui.ecal.cores=Thread Cores:
+ecoaegtnh.gui.ecal.vcpu=Standby vCPU:
+ecoaegtnh.gui.ecal.vcpu.ready=Ready
+ecoaegtnh.gui.ecal.vcpu.none=None
+ecoaegtnh.ecal.vcpu.submit_rejected=Insufficient pool: the job needs %s bytes (incl. +10%% hyper reserve), only %s available
+ecoaegtnh.gui.ecal.tasks=Active Tasks:
+ecoaegtnh.gui.ecal.power=Power Usage:
+ecoaegtnh.gui.ecal.core_line=§7Thread Core %d: §fThreads §e%d§7 · Hyper §e%d§7 · Tasks §e%d
+ecoaegtnh.gui.ecal.task_line=§f%s §7x%d §7· §e%d%% §7· §b%d§7µs/t §7· §d%d§7/t
+ecoaegtnh.gui.ecal.task.loading=(job loading)
+ecoaegtnh.gui.ecal.no_tasks=(no active tasks)
+# LED hover tooltips
+ecoaegtnh.gui.ecal.led.bytes=Byte Pool:
+ecoaegtnh.gui.ecal.led.parallelism=Parallelism:
+ecoaegtnh.gui.ecal.led.cores=Thread Cores:
+ecoaegtnh.gui.ecal.led.bytes.redline_ok=10% red line not triggered (available ≥ 10% of total; new jobs allowed)
+ecoaegtnh.gui.ecal.led.bytes.redline_hit=10% red line triggered: available below 10% of total; new jobs paused
+# ===== E-Calculator t28: flash cell nine sizes (k-level, size-style names) =====
+item.ecoaegtnh.ecalculator_cell_256k.name=ECO Flash Cell (256k)
+item.ecoaegtnh.ecalculator_cell_1024k.name=ECO Flash Cell (1024k)
+item.ecoaegtnh.ecalculator_cell_4096k.name=ECO Flash Cell (4096k)
+# ===== E-Calculator t13: cell drive shift-right-click interaction messages =====
+ecoaegtnh.ecal.cell.not_formed=Structure not formed — cannot insert flash cell
+ecoaegtnh.ecal.cell.tier_not_supported=This flash cell requires a higher-tier controller
+ecoaegtnh.ecal.cell.inserted=Flash cell inserted
+ecoaegtnh.ecal.cell.removed=Flash cell removed
+# ===== E-Calculator t14 (user feedback point 5): functional-block hover tooltips =====
+ecoaegtnh.tooltip.ecal.block.parallel_drive=Parallel-core drive: 1 slot, shift+right-click to insert/remove a parallel core (the core item supplies parallelism; any tier)
+ecoaegtnh.tooltip.ecal.block.thread_drive=Thread-core drive: 1 slot, shift+right-click to insert/remove a thread core (the core item supplies thread slots and hosts vCPU tasks; any tier)
+ecoaegtnh.tooltip.ecal.block.cell_drive=Cell drive: provides flash-cell storage space — 1 slot, accepts tiered flash cells (k-level → C4+, M-level → C6+, big-M → C9 only)
+ecoaegtnh.tooltip.ecal.block.me_channel=ME matrix communication interface: the protocol-compatibility layer between the subsystem and the ME network — connect ME cables to accept crafting jobs (vCPUs are exposed through it), no extra power draw
+ecoaegtnh.tooltip.ecal.block.transmitter_bus=Superconducting crystal-array bus: carries computation data within a segment
+ecoaegtnh.tooltip.ecal.block.casing=Structural component: forms the host head and the segment shell
+# ===== E-Calculator t35: insertable core items (parallel x9 + thread x6, milestone level gated) =====
+item.ecoaegtnh.ecal_parallel_core_1.name=ECO Parallel Core (1)
+item.ecoaegtnh.ecal_parallel_core_4.name=ECO Parallel Core (4)
+item.ecoaegtnh.ecal_parallel_core_16.name=ECO Parallel Core (16)
+item.ecoaegtnh.ecal_parallel_core_64.name=ECO Parallel Core (64)
+item.ecoaegtnh.ecal_parallel_core_256.name=ECO Parallel Core (256)
+item.ecoaegtnh.ecal_parallel_core_1024.name=ECO Parallel Core (1024)
+item.ecoaegtnh.ecal_parallel_core_4096.name=ECO Parallel Core (4096)
+item.ecoaegtnh.ecal_parallel_core_16384.name=ECO Parallel Core (16384)
+item.ecoaegtnh.ecal_parallel_core_65536.name=ECO Parallel Core (65536)
+item.ecoaegtnh.ecal_thread_core_1.name=ECO Thread Core (1)
+item.ecoaegtnh.ecal_thread_core_4.name=ECO Thread Core (4)
+item.ecoaegtnh.ecal_thread_core_16.name=ECO Thread Core (16)
+item.ecoaegtnh.ecal_thread_core_32.name=ECO Thread Core (32)
+item.ecoaegtnh.ecal_thread_core_64.name=ECO Thread Core (64)
+item.ecoaegtnh.ecal_thread_core_hyper_2.name=ECO Hyper-Thread Core (4)
+item.ecoaegtnh.ecal_thread_core_hyper_4.name=ECO Hyper-Thread Core (8)
+item.ecoaegtnh.ecal_thread_core_hyper_8.name=ECO Hyper-Thread Core (16)
+ecoaegtnh.tooltip.ecal.parallel_core=Parallelism: %s (insert into a parallel-core drive to join the host total; any tier)
+ecoaegtnh.tooltip.ecal.thread_core=Threads: %s (insert into a thread-core drive to provide task thread slots)
+ecoaegtnh.tooltip.ecal.thread_core.hyper=Threads: %s + %s hyper (this core: %s+%s), hyper jobs cost +10%% bytes
+# ===== E-Calculator t35: core drive shift-right-click interaction messages =====
+ecoaegtnh.ecal.core.not_formed=Structure not formed — cannot insert core
+ecoaegtnh.ecal.core.inserted=Core inserted
+ecoaegtnh.ecal.core.removed=Core removed
+# ===== E-Calculator t28: flash cell M / big-M sizes + shared tooltips =====
+item.ecoaegtnh.ecalculator_cell_16m.name=ECO Flash Cell (16M)
+item.ecoaegtnh.ecalculator_cell_64m.name=ECO Flash Cell (64M)
+item.ecoaegtnh.ecalculator_cell_256m.name=ECO Flash Cell (256M)
+item.ecoaegtnh.ecalculator_cell_1024m.name=ECO Flash Cell (1024M)
+item.ecoaegtnh.ecalculator_cell_4096m.name=ECO Flash Cell (4096M)
+item.ecoaegtnh.ecalculator_cell_16384m.name=ECO Flash Cell (16384M)
+item.ecoaegtnh.ecalculator_cell_singularity.name=ECO Singularity Flash Cell
+ecoaegtnh.ecal.cell.tip.bytes=%s AE bytes
+ecoaegtnh.ecal.cell.tip.group.k=k-level cell
+ecoaegtnh.ecal.cell.tip.group.m=M-level cell
+ecoaegtnh.ecal.cell.tip.group.bigm=big-M cell
+# t53: milestone-line gates replace the C4/C6/C9 tier wording
+ecoaegtnh.ecal.cell.tip.tier.k=Requires main-cell line Lv.1+ (insert into a cell drive to join the byte pool; new jobs pause below 10% available)
+ecoaegtnh.ecal.cell.tip.tier.m=Requires main-cell line Lv.2+ (insert into a cell drive to join the byte pool; new jobs pause below 10% available)
+ecoaegtnh.ecal.cell.tip.tier.bigm=Requires main-cell line Lv.3 (1024M/4096M) or Lv.4 (16384M) (insert into a cell drive to join the byte pool; new jobs pause below 10% available)
+# ===== E-Calculator t25: ECO vCPU distinction in the AE crafting-status GUI =====
+ecoaegtnh.gui.ecal.cpu.threads=Available threads: %d
+ecoaegtnh.gui.ecal.cpu.threads_hyper=Available threads: %d (+%d hyper)
+# t63: the milestone system is replaced by the upgrade tree — the old milestone.* and
+# level-gate keys are removed; only the still-referenced keys remain
+ecoaegtnh.gui.ecal.milestone.back=Back to main panel
+ecoaegtnh.gui.ecal.upgrade.button=Upgrade Tree
+ecoaegtnh.gui.ecal.upgrade.button_tooltip=Open the upgrade tree: node details and material submission
+ecoaegtnh.ecal.cell.node_not_supported=Unlock upgrade-tree node %s first (cell chain)
+ecoaegtnh.ecal.core.parallel.node_not_supported=Unlock upgrade-tree node %s first (parallel chain)
+ecoaegtnh.ecal.core.thread.node_not_supported=Unlock upgrade-tree node %s first (thread/hyper chain)
+# ===== E-Calculator t60/t61: upgrade tree (no currency/levels: material-submit unlocks) =====
+ecoaegtnh.gui.upgrade.overview.title=Upgrade Tree
+ecoaegtnh.gui.upgrade.overview.hint=Click a node for details and material submission
+ecoaegtnh.gui.upgrade.overview.click=Click for details
+ecoaegtnh.gui.upgrade.chain.cell=Cell
+ecoaegtnh.gui.upgrade.chain.parallel=Parallel
+ecoaegtnh.gui.upgrade.chain.thread=Thread
+ecoaegtnh.gui.upgrade.chain.hyper=Hyper
+ecoaegtnh.gui.upgrade.chain.overclock=Overclock
+ecoaegtnh.gui.upgrade.state.active=Active
+ecoaegtnh.gui.upgrade.state.ready=Available
+ecoaegtnh.gui.upgrade.requires=Requires:
+ecoaegtnh.gui.upgrade.none=None
+ecoaegtnh.gui.upgrade.detail.empty=No node selected
+ecoaegtnh.gui.upgrade.detail.material_button=Materials
+ecoaegtnh.gui.upgrade.material.none=No materials required
+# t71: godforge material-window copy
+ecoaegtnh.gui.upgrade.material.title=Pay Upgrade Cost
+# t63: material-row display (paid / required)
+ecoaegtnh.gui.upgrade.material.paid=Paid
+ecoaegtnh.gui.upgrade.material.required=Required
+ecoaegtnh.gui.upgrade.material.staging=Staging (consumed on submit, not retrievable)
+ecoaegtnh.gui.upgrade.material.submit=Consume Upgrade Materials
+ecoaegtnh.gui.upgrade.material.submit_tip=Feed the staging items into the selected node; it activates once all requirements are met
+ecoaegtnh.gui.upgrade.material.open=Open the material window
+ecoaegtnh.gui.upgrade.activated=Upgrade activated: %s
+# Upgrade-tree nodes (calculator: single main chain + branches, 26 nodes, t65)
+ecoaegtnh.upgrade.node.N1.name=Machine Base
+ecoaegtnh.upgrade.node.N1.effect=Machine base: initial 12M byte pool (free)
+ecoaegtnh.upgrade.node.N2.name=Cell 256k
+ecoaegtnh.upgrade.node.N2.effect=Unlocks 256k cells (12M byte pool)
+ecoaegtnh.upgrade.node.N3.name=Cell 1024k
+ecoaegtnh.upgrade.node.N3.effect=Unlocks 1024k cells (64M byte pool)
+ecoaegtnh.upgrade.node.N4.name=Cell 4096k
+ecoaegtnh.upgrade.node.N4.effect=Unlocks 4096k cells (256M byte pool); opens the thread/parallel branches
+ecoaegtnh.upgrade.node.N5.name=Cell 16M
+ecoaegtnh.upgrade.node.N5.effect=Unlocks 16M cells (1G byte pool)
+ecoaegtnh.upgrade.node.N6.name=Cell 64M
+ecoaegtnh.upgrade.node.N6.effect=Unlocks 64M cells (4G byte pool)
+ecoaegtnh.upgrade.node.N7.name=Cell 256M
+ecoaegtnh.upgrade.node.N7.effect=Unlocks 256M cells (16G byte pool)
+ecoaegtnh.upgrade.node.N8.name=Cell 1024M
+ecoaegtnh.upgrade.node.N8.effect=Unlocks 1024M cells (64G byte pool)
+ecoaegtnh.upgrade.node.N9.name=Cell 4096M
+ecoaegtnh.upgrade.node.N9.effect=Unlocks 4096M cells (256G byte pool)
+ecoaegtnh.upgrade.node.N10.name=Cell 16384M
+ecoaegtnh.upgrade.node.N10.effect=Unlocks 16384M cells; removes the byte-pool cap
+ecoaegtnh.upgrade.node.N11.name=Cell Singularity
+ecoaegtnh.upgrade.node.N11.effect=Unlocks the Singularity flash cell (unlimited byte pool)
+ecoaegtnh.upgrade.node.T1.name=Thread 1
+ecoaegtnh.upgrade.node.T1.effect=Unlocks 1-thread cores (requires Cell 4096k)
+ecoaegtnh.upgrade.node.T2.name=Thread 4
+ecoaegtnh.upgrade.node.T2.effect=Unlocks 4-thread cores
+ecoaegtnh.upgrade.node.T3.name=Thread 16
+ecoaegtnh.upgrade.node.T3.effect=Unlocks 16-thread cores
+ecoaegtnh.upgrade.node.T4.name=Thread 32
+ecoaegtnh.upgrade.node.T4.effect=Unlocks 32-thread cores
+ecoaegtnh.upgrade.node.T5.name=Thread 64
+ecoaegtnh.upgrade.node.T5.effect=Unlocks 64-thread cores
+ecoaegtnh.upgrade.node.H1.name=Hyper 2
+ecoaegtnh.upgrade.node.H1.effect=Hyper-threads +2 (requires Thread 4)
+ecoaegtnh.upgrade.node.H2.name=Hyper 4
+ecoaegtnh.upgrade.node.H2.effect=Hyper-threads +4 (requires Thread 16)
+ecoaegtnh.upgrade.node.H3.name=Hyper 8
+ecoaegtnh.upgrade.node.H3.effect=Hyper-threads +8 (requires Thread 16)
+ecoaegtnh.upgrade.node.P1.name=Parallel 1
+ecoaegtnh.upgrade.node.P1.effect=Unlocks 1 parallel core (requires Cell 4096k)
+ecoaegtnh.upgrade.node.P2.name=Parallel 4
+ecoaegtnh.upgrade.node.P2.effect=Unlocks 4 parallel cores
+ecoaegtnh.upgrade.node.P3.name=Parallel 16
+ecoaegtnh.upgrade.node.P3.effect=Unlocks 16 parallel cores
+ecoaegtnh.upgrade.node.P4.name=Parallel 64
+ecoaegtnh.upgrade.node.P4.effect=Unlocks 64 parallel cores
+ecoaegtnh.upgrade.node.P5.name=Parallel 256
+ecoaegtnh.upgrade.node.P5.effect=Unlocks 256 parallel cores
+ecoaegtnh.upgrade.node.P6.name=Parallel 1024
+ecoaegtnh.upgrade.node.P6.effect=Unlocks 1024 parallel cores
+ecoaegtnh.upgrade.node.P7.name=Parallel 4096
+ecoaegtnh.upgrade.node.P7.effect=Unlocks 4096 parallel cores
+ecoaegtnh.upgrade.node.P8.name=Parallel 16384
+ecoaegtnh.upgrade.node.P8.effect=Unlocks 16384 parallel cores
+ecoaegtnh.upgrade.node.P9.name=Parallel 65536
+ecoaegtnh.upgrade.node.P9.effect=Unlocks 65536 parallel cores
+ecoaegtnh.upgrade.node.OC.name=Overclock Mode
+ecoaegtnh.upgrade.node.OC.effect=Red line relaxed to 5%; hyper-thread storage +10% surcharge waived (requires Cell 16384M + Thread 16 + Hyper 8 + Parallel 65536)
+# t67: node short names (centered captions under the overview buttons)
+ecoaegtnh.upgrade.node.N1.short=Start
+ecoaegtnh.upgrade.node.N2.short=256k
+ecoaegtnh.upgrade.node.N3.short=1024k
+ecoaegtnh.upgrade.node.N4.short=4096k
+ecoaegtnh.upgrade.node.N5.short=16M
+ecoaegtnh.upgrade.node.N6.short=64M
+ecoaegtnh.upgrade.node.N7.short=256M
+ecoaegtnh.upgrade.node.N8.short=1024M
+ecoaegtnh.upgrade.node.N9.short=4096M
+ecoaegtnh.upgrade.node.N10.short=16384M
+ecoaegtnh.upgrade.node.N11.short=Singular
+ecoaegtnh.upgrade.node.T1.short=Th1
+ecoaegtnh.upgrade.node.T2.short=Th4
+ecoaegtnh.upgrade.node.T3.short=Th16
+ecoaegtnh.upgrade.node.T4.short=Th32
+ecoaegtnh.upgrade.node.T5.short=Th64
+ecoaegtnh.upgrade.node.H1.short=H2
+ecoaegtnh.upgrade.node.H2.short=H4
+ecoaegtnh.upgrade.node.H3.short=H8
+ecoaegtnh.upgrade.node.P1.short=P1
+ecoaegtnh.upgrade.node.P2.short=P4
+ecoaegtnh.upgrade.node.P3.short=P16
+ecoaegtnh.upgrade.node.P4.short=P64
+ecoaegtnh.upgrade.node.P5.short=P256
+ecoaegtnh.upgrade.node.P6.short=P1024
+ecoaegtnh.upgrade.node.P7.short=P4096
+ecoaegtnh.upgrade.node.P8.short=P16384
+ecoaegtnh.upgrade.node.P9.short=P65536
+ecoaegtnh.upgrade.node.OC.short=OC
+# ---- t114g built-in threads (machine provides 1 thread; B1 +3, B2 +2 hyper) ----
+ecoaegtnh.upgrade.node.B1.name=Built-in Threads
+ecoaegtnh.upgrade.node.B1.effect=+3 built-in threads (base 1 → 4, no thread-core drive needed)
+ecoaegtnh.upgrade.node.B2.name=Built-in Hyper
+ecoaegtnh.upgrade.node.B2.effect=+2 built-in hyper threads
+ecoaegtnh.upgrade.node.B1.short=Builtin
+ecoaegtnh.upgrade.node.B2.short=BHyper
+# ===== E-Calculator t112: storage upgrade tree, 27 nodes (one node per cell: 3 families x 9 sizes) =====
+# ---- Item chain I1..I9 (one node per item-cell size) ----
+ecoaegtnh.upgrade.node.I1.name=Item 256k
+ecoaegtnh.upgrade.node.I1.effect=Unlocks the 256k item cell
+ecoaegtnh.upgrade.node.I2.name=Item 1024k
+ecoaegtnh.upgrade.node.I2.effect=Unlocks the 1024k item cell
+ecoaegtnh.upgrade.node.I3.name=Item 4096k
+ecoaegtnh.upgrade.node.I3.effect=Unlocks the 4096k item cell
+ecoaegtnh.upgrade.node.I4.name=Item 16M
+ecoaegtnh.upgrade.node.I4.effect=Unlocks the 16M item cell
+ecoaegtnh.upgrade.node.I5.name=Item 64M
+ecoaegtnh.upgrade.node.I5.effect=Unlocks the 64M item cell
+ecoaegtnh.upgrade.node.I6.name=Item 256M
+ecoaegtnh.upgrade.node.I6.effect=Unlocks the 256M item cell
+ecoaegtnh.upgrade.node.I7.name=Item 1024M
+ecoaegtnh.upgrade.node.I7.effect=Unlocks the 1024M item cell
+ecoaegtnh.upgrade.node.I8.name=Item 4096M
+ecoaegtnh.upgrade.node.I8.effect=Unlocks the 4096M item cell
+ecoaegtnh.upgrade.node.I9.name=Item 16384M
+ecoaegtnh.upgrade.node.I9.effect=Unlocks the 16384M item cell
+# ---- Fluid chain F1..F9 ----
+ecoaegtnh.upgrade.node.F1.name=Fluid 256k
+ecoaegtnh.upgrade.node.F1.effect=Unlocks the 256k fluid cell
+ecoaegtnh.upgrade.node.F2.name=Fluid 1024k
+ecoaegtnh.upgrade.node.F2.effect=Unlocks the 1024k fluid cell
+ecoaegtnh.upgrade.node.F3.name=Fluid 4096k
+ecoaegtnh.upgrade.node.F3.effect=Unlocks the 4096k fluid cell
+ecoaegtnh.upgrade.node.F4.name=Fluid 16M
+ecoaegtnh.upgrade.node.F4.effect=Unlocks the 16M fluid cell
+ecoaegtnh.upgrade.node.F5.name=Fluid 64M
+ecoaegtnh.upgrade.node.F5.effect=Unlocks the 64M fluid cell
+ecoaegtnh.upgrade.node.F6.name=Fluid 256M
+ecoaegtnh.upgrade.node.F6.effect=Unlocks the 256M fluid cell
+ecoaegtnh.upgrade.node.F7.name=Fluid 1024M
+ecoaegtnh.upgrade.node.F7.effect=Unlocks the 1024M fluid cell
+ecoaegtnh.upgrade.node.F8.name=Fluid 4096M
+ecoaegtnh.upgrade.node.F8.effect=Unlocks the 4096M fluid cell
+ecoaegtnh.upgrade.node.F9.name=Fluid 16384M
+ecoaegtnh.upgrade.node.F9.effect=Unlocks the 16384M fluid cell
+# ---- Essentia chain E1..E9 ----
+ecoaegtnh.upgrade.node.E1.name=Essentia 256k
+ecoaegtnh.upgrade.node.E1.effect=Unlocks the 256k essentia cell (requires Thaumcraft 4 loaded)
+ecoaegtnh.upgrade.node.E2.name=Essentia 1024k
+ecoaegtnh.upgrade.node.E2.effect=Unlocks the 1024k essentia cell
+ecoaegtnh.upgrade.node.E3.name=Essentia 4096k
+ecoaegtnh.upgrade.node.E3.effect=Unlocks the 4096k essentia cell
+ecoaegtnh.upgrade.node.E4.name=Essentia 16M
+ecoaegtnh.upgrade.node.E4.effect=Unlocks the 16M essentia cell
+ecoaegtnh.upgrade.node.E5.name=Essentia 64M
+ecoaegtnh.upgrade.node.E5.effect=Unlocks the 64M essentia cell
+ecoaegtnh.upgrade.node.E6.name=Essentia 256M
+ecoaegtnh.upgrade.node.E6.effect=Unlocks the 256M essentia cell
+ecoaegtnh.upgrade.node.E7.name=Essentia 1024M
+ecoaegtnh.upgrade.node.E7.effect=Unlocks the 1024M essentia cell
+ecoaegtnh.upgrade.node.E8.name=Essentia 4096M
+ecoaegtnh.upgrade.node.E8.effect=Unlocks the 4096M essentia cell
+ecoaegtnh.upgrade.node.E9.name=Essentia 16384M
+ecoaegtnh.upgrade.node.E9.effect=Unlocks the 16384M essentia cell
+# ---- t113: Artificial Universe tier (10th size, one node per chain) ----
+ecoaegtnh.upgrade.node.I10.name=Item Artificial Universe
+ecoaegtnh.upgrade.node.I10.effect=Unlocks the Artificial Universe item cell (576,460,752,303,423,487 bytes)
+ecoaegtnh.upgrade.node.F10.name=Fluid Artificial Universe
+ecoaegtnh.upgrade.node.F10.effect=Unlocks the Artificial Universe fluid cell (576,460,752,303,423,487 bytes)
+ecoaegtnh.upgrade.node.E10.name=Essentia Artificial Universe
+ecoaegtnh.upgrade.node.E10.effect=Unlocks the Artificial Universe essentia cell (576,460,752,303,423,487 bytes)
+# ---- t114: infinite water / arcane (last node of their chains) ----
+ecoaegtnh.upgrade.node.F11.name=Fluid Infinite Water
+ecoaegtnh.upgrade.node.F11.effect=Unlocks the Infinite Water fluid cell (unlimited capacity, water only)
+ecoaegtnh.upgrade.node.E11.name=Essentia Arcane
+ecoaegtnh.upgrade.node.E11.effect=Unlocks the Arcane essentia cell (unlimited capacity, all aspects)
+# ---- Button short names ----
+ecoaegtnh.upgrade.node.I1.short=Item256k
+ecoaegtnh.upgrade.node.I2.short=Item1024k
+ecoaegtnh.upgrade.node.I3.short=Item4096k
+ecoaegtnh.upgrade.node.I4.short=Item16M
+ecoaegtnh.upgrade.node.I5.short=Item64M
+ecoaegtnh.upgrade.node.I6.short=Item256M
+ecoaegtnh.upgrade.node.I7.short=Item1024M
+ecoaegtnh.upgrade.node.I8.short=Item4096M
+ecoaegtnh.upgrade.node.I9.short=Item16384M
+ecoaegtnh.upgrade.node.F1.short=Fluid256k
+ecoaegtnh.upgrade.node.F2.short=Fluid1024k
+ecoaegtnh.upgrade.node.F3.short=Fluid4096k
+ecoaegtnh.upgrade.node.F4.short=Fluid16M
+ecoaegtnh.upgrade.node.F5.short=Fluid64M
+ecoaegtnh.upgrade.node.F6.short=Fluid256M
+ecoaegtnh.upgrade.node.F7.short=Fluid1024M
+ecoaegtnh.upgrade.node.F8.short=Fluid4096M
+ecoaegtnh.upgrade.node.F9.short=Fluid16384M
+ecoaegtnh.upgrade.node.E1.short=Ess256k
+ecoaegtnh.upgrade.node.E2.short=Ess1024k
+ecoaegtnh.upgrade.node.E3.short=Ess4096k
+ecoaegtnh.upgrade.node.E4.short=Ess16M
+ecoaegtnh.upgrade.node.E5.short=Ess64M
+ecoaegtnh.upgrade.node.E6.short=Ess256M
+ecoaegtnh.upgrade.node.E7.short=Ess1024M
+ecoaegtnh.upgrade.node.E8.short=Ess4096M
+ecoaegtnh.upgrade.node.E9.short=Ess16384M
+ecoaegtnh.upgrade.node.I10.short=ItemUniv
+ecoaegtnh.upgrade.node.F10.short=FluidUniv
+ecoaegtnh.upgrade.node.E10.short=EssUniv
+ecoaegtnh.upgrade.node.F11.short=InfWater
+ecoaegtnh.upgrade.node.E11.short=Arcane

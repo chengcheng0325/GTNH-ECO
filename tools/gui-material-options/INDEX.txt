@@ -1,0 +1,50 @@
+# GUI 材质候选清单（供选择）
+
+> 打开本文件夹的 PNG 查看效果。小尺寸文件（<1KB）多为**可拉伸/九宫格**纹理（1px 边框、16×16 底纹），实际渲染时会被拉伸到目标尺寸，属正常现象——请以其颜色/风格为准判断。
+
+## 🪟 窗口背景（材料窗口/升级树窗口可选）
+| 文件 | 名称 | 外观 |
+|---|---|---|
+| BG1_mui_vanilla.png | 浅灰 vanilla 经典背景 | 浅灰白，MC 经典 GUI 色（当前材料窗口在用） |
+| BG2_mui_border1px.png | 1px 描边背景 | 单色描边可拉伸（1px 边框） |
+| BG3_mui_background.png | MUI1 基础背景 | 浅色基础面板 |
+| BG4_mui_display.png | MUI1 显示面板 | 显示器面板风格 |
+| BG5_tectech_screen_blue.png | TecTech 深蓝屏幕 | 深蓝（量子计算机同款，可拉伸） |
+| BG6_tectech_screen_blue_noinv.png | 深蓝无物品栏版 | 同上但无物品栏底 |
+| BG7_tectech_star.png | TecTech 星图背景 | 深色星图（神锻升级树总览同款） |
+| BG8_tectech_purple_glow.png | TecTech 紫色辉光 | 紫光科技感 |
+| BG9_ours_starfield.png | 我们的星图背景 | 深蓝近黑+青金节点星点（当前升级树总览在用） |
+
+## 🔘 按钮
+| 文件 | 名称 | 外观 |
+|---|---|---|
+| BTN1_mui_base.png | MUI1 基础按钮 | 可拉伸基础按钮 |
+| BTN2_mui_vanilla_normal.png | vanilla 按钮常态 | 白边灰底 |
+| BTN3_mui_vanilla_hovered.png | vanilla 按钮悬停 | 白边亮底 |
+| BTN4_tectech_standard.png | TecTech 标准按钮 | 深色（16×16 可拉伸） |
+| BTN5_tectech_light.png | TecTech 浅色按钮 | 浅色（当前消耗按钮在用） |
+
+## ❌ 关闭按钮图标
+| 文件 | 名称 | 外观 |
+|---|---|---|
+| CLOSE1_mui_cross.png | 黑色 × | 黑 × 图标（替代当前白框） |
+| CLOSE2_mui_cross_gray.png | 灰色 × | 灰 × 图标 |
+
+## 🧩 槽
+| 文件 | 名称 | 外观 |
+|---|---|---|
+| SLOT1_mui_item.png | 物品槽 | 灰槽（可拉伸） |
+| SLOT2_mui_fluid.png | 流体槽 | 罐形槽 |
+
+## 🌲 升级树节点/连线
+| 文件 | 名称 | 外观 |
+|---|---|---|
+| NODE1_tectech_purple.png | 节点紫色底纹 | 紫底按钮（神锻节点同款，当前在用） |
+| NODE2_tectech_purple_pressed.png | 节点紫色按下 | 按下的紫底 |
+| LINE1_connector_blue.png | 连线蓝半透明 | 蓝色连线（未激活态） |
+| LINE2_connector_blue_opaque.png | 连线蓝实线 | 蓝色实线（激活态） |
+| OK1_green_checkmark.png | 绿色打勾 | 材料付清 ✓ |
+
+---
+
+**选择方式**：告诉我编号即可，如「材料窗口背景用 BG5、关闭按钮用 CLOSE1、消耗按钮换 BTN4」。

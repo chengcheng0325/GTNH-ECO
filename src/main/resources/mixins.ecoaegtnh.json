@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8.5-GTNH",
+  "package": "ecoaegtnh.mixin",
+  "refmap": "mixins.ecoaegtnh.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinSlotRestrictedInput",
+    "MixinTileDrive",
+    "MixinGridStorageCache",
+    "MixinContainerNetworkStatus",
+    "MixinCraftingCPUStatus"
+  ],
+  "client": [
+    "MixinGuiNetworkStatus",
+    "MixinGuiCraftingCPUTable"
+  ],
+  "server": [
+    "MixinCraftingCPUCluster",
+    "MixinCraftingGridCache"
+  ]
+}

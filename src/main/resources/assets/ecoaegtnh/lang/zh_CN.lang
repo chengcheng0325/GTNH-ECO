@@ -1,0 +1,535 @@
+itemGroup.ecoaegtnh=ECO AE 扩展
+
+# ------------------------------------------------------------------
+# 方块
+# ------------------------------------------------------------------
+tile.ecoaegtnh.storage_array_casing.name=存储阵列外壳
+tile.ecoaegtnh.storage_array_drive.name=存储阵列驱动盘位
+tile.ecoaegtnh.storage_array_capacitance.name=存储阵列电容
+tile.ecoaegtnh.storage_array_vent.name=存储阵列通风口
+tile.ecoaegtnh.storage_array_me_bus.name=存储阵列 ME 总线
+
+# ------------------------------------------------------------------
+# 存储盘
+# ------------------------------------------------------------------
+item.ecoaegtnh.estorage_cell_item_256k.name=ECO 存储阵列物品盘 (256k)
+item.ecoaegtnh.estorage_cell_item_1024k.name=ECO 存储阵列物品盘 (1024k)
+item.ecoaegtnh.estorage_cell_item_4096k.name=ECO 存储阵列物品盘 (4096k)
+item.ecoaegtnh.estorage_cell_item_16m.name=ECO 存储阵列物品盘 (16M)
+item.ecoaegtnh.estorage_cell_item_64m.name=ECO 存储阵列物品盘 (64M)
+item.ecoaegtnh.estorage_cell_item_256m.name=ECO 存储阵列物品盘 (256M)
+item.ecoaegtnh.estorage_cell_item_1024m.name=ECO 存储阵列物品盘 (1024M)
+item.ecoaegtnh.estorage_cell_item_4096m.name=ECO 存储阵列物品盘 (4096M)
+item.ecoaegtnh.estorage_cell_item_16384m.name=ECO 存储阵列物品盘 (16384M)
+item.ecoaegtnh.estorage_cell_item_universe.name=ECO 人造宇宙物品盘
+item.ecoaegtnh.estorage_cell_fluid_256k.name=ECO 存储阵列流体盘 (256k)
+item.ecoaegtnh.estorage_cell_fluid_1024k.name=ECO 存储阵列流体盘 (1024k)
+item.ecoaegtnh.estorage_cell_fluid_4096k.name=ECO 存储阵列流体盘 (4096k)
+item.ecoaegtnh.estorage_cell_fluid_16m.name=ECO 存储阵列流体盘 (16M)
+item.ecoaegtnh.estorage_cell_fluid_64m.name=ECO 存储阵列流体盘 (64M)
+item.ecoaegtnh.estorage_cell_fluid_256m.name=ECO 存储阵列流体盘 (256M)
+item.ecoaegtnh.estorage_cell_fluid_1024m.name=ECO 存储阵列流体盘 (1024M)
+item.ecoaegtnh.estorage_cell_fluid_4096m.name=ECO 存储阵列流体盘 (4096M)
+item.ecoaegtnh.estorage_cell_fluid_16384m.name=ECO 存储阵列流体盘 (16384M)
+item.ecoaegtnh.estorage_cell_fluid_universe.name=ECO 人造宇宙流体盘
+item.ecoaegtnh.estorage_cell_fluid_infwater.name=ECO 无限水流体盘
+item.ecoaegtnh.estorage_cell_essentia_256k.name=ECO 存储阵列源质盘 (256k)
+item.ecoaegtnh.estorage_cell_essentia_1024k.name=ECO 存储阵列源质盘 (1024k)
+item.ecoaegtnh.estorage_cell_essentia_4096k.name=ECO 存储阵列源质盘 (4096k)
+item.ecoaegtnh.estorage_cell_essentia_16m.name=ECO 存储阵列源质盘 (16M)
+item.ecoaegtnh.estorage_cell_essentia_64m.name=ECO 存储阵列源质盘 (64M)
+item.ecoaegtnh.estorage_cell_essentia_256m.name=ECO 存储阵列源质盘 (256M)
+item.ecoaegtnh.estorage_cell_essentia_1024m.name=ECO 存储阵列源质盘 (1024M)
+item.ecoaegtnh.estorage_cell_essentia_4096m.name=ECO 存储阵列源质盘 (4096M)
+item.ecoaegtnh.estorage_cell_essentia_16384m.name=ECO 存储阵列源质盘 (16384M)
+item.ecoaegtnh.estorage_cell_essentia_universe.name=ECO 人造宇宙源质盘
+item.ecoaegtnh.estorage_cell_essentia_arcane.name=ECO 魔导源质盘
+# 存储盘提示
+ecoaegtnh.estorage_cell.infinite_water.tip=§b无限容量 · 仅存储水
+ecoaegtnh.estorage_cell.arcane.tip=§d无限容量 · 可存储全部源质
+ecoaegtnh.estorage_cell.insert.tip=放入存储阵列驱动盘位以接入 ME 网络
+ecoaegtnh.estorage_cell.interact.tip=潜行右键驱动盘位可放入/取出本存储盘
+ecoaegtnh.estorage_cell.extract.tip=需要 ME 网络供电
+# t53: milestone-line gates replace the L4/L6/L9 controller wording
+ecoaegtnh.estorage_cell.l6.tip=需要对应线 Lv.2 及以上（物品/流体/源质线独立投料升级）
+ecoaegtnh.estorage_cell.l9.tip=需要对应线 Lv.3（1024M/4096M）或 Lv.4（16384M）
+ecoaegtnh.estorage_cell.used.tip=已用：
+ecoaegtnh.estorage_cell.bytes.tip=字节
+ecoaegtnh.estorage_cell.types.tip=类型：
+
+# 驱动盘位交互
+ecoaegtnh.drive.cell.inserted=存储盘已放入
+ecoaegtnh.drive.cell.removed=存储盘已取出
+# t62（用户偏好）：放入门控——阵列需已成型；升级树节点门控附所需节点
+ecoaegtnh.drive.cell.not_formed=机器未成型，无法放置存储盘
+ecoaegtnh.drive.cell.tier_not_supported=该存储盘需要 %s 控制器（当前阵列等级不足）
+ecoaegtnh.drive.cell.node_not_supported=需要先解锁升级树节点 %s（物品/流体/源质链）
+
+# WAILA（驱动盘位）
+ecoaegtnh.waila.drive.cell=盘：
+ecoaegtnh.waila.drive.empty=空
+ecoaegtnh.waila.drive.kind.item=物品
+ecoaegtnh.waila.drive.kind.fluid=流体
+ecoaegtnh.waila.drive.kind.essentia=源质
+ecoaegtnh.waila.drive.kind.line=%s 盘 %dM
+# WAILA（E-Calculator 驱动器，t43）
+ecoaegtnh.waila.ecal.drive.core=核心：
+ecoaegtnh.waila.ecal.drive.empty=空
+ecoaegtnh.waila.ecal.drive.parallelism=并行：%s
+ecoaegtnh.waila.ecal.drive.threads=线程：%s
+ecoaegtnh.waila.ecal.drive.threads_hyper=线程：%s（超线程 %s）
+ecoaegtnh.waila.ecal.drive.bytes=容量：%s AE 字节
+
+# ------------------------------------------------------------------
+# 控制器（GT 机器方块名使用 gt.blockmachines.<内部名>.name）
+# ------------------------------------------------------------------
+gt.blockmachines.estorage.array.l4.name=ECO 存储阵列 (L4)
+gt.blockmachines.estorage.array.l6.name=ECO 存储阵列 (L6)
+gt.blockmachines.estorage.array.l9.name=ECO 存储阵列 (L9)
+# t51（里程碑）：唯一阵列控制器显示名（去档位）——双键覆盖 GT 前缀机制两种可能
+gt.blockmachines.estorage.array.name=ECO 存储阵列
+gt.blockmachines.ecoaegtnh.estorage.array.name=ECO 存储阵列
+
+# ------------------------------------------------------------------
+# GUI
+# ------------------------------------------------------------------
+ecoaegtnh.gui.storage_stats.title=ECO 存储阵列
+ecoaegtnh.gui.storage_stats.structure=结构：
+ecoaegtnh.gui.storage_stats.valid=成型
+ecoaegtnh.gui.storage_stats.invalid=未成型
+ecoaegtnh.gui.storage_stats.drives=盘位：
+ecoaegtnh.gui.storage_stats.columns=列数：
+ecoaegtnh.gui.storage_stats.energy=能量：
+
+# GUI IO 区（t50，量子计算机风格底部状态行）
+ecoaegtnh.gui.io.mebus=ME 总线：
+ecoaegtnh.gui.io.mebus.connected=已连接
+ecoaegtnh.gui.io.mebus.offline=未连接
+ecoaegtnh.gui.io.mebus.missing=缺失
+# t96：状态 LED tooltip 耗能（AE/t）
+ecoaegtnh.gui.io.power_usage=耗能：
+# t73：存储盘统计悬停摘要（IO LED tooltip）
+ecoaegtnh.gui.io.total_cells=总盘
+ecoaegtnh.gui.io.item_cells=物品盘
+ecoaegtnh.gui.io.fluid_cells=流体盘
+ecoaegtnh.gui.io.essentia_cells=源质盘
+ecoaegtnh.gui.io.types=类型
+ecoaegtnh.gui.io.bytes=字节
+
+# ------------------------------------------------------------------
+# 结构说明（投影仪聊天显示，t38）
+# ------------------------------------------------------------------
+ecoaegtnh.structure.desc.columns=驱动列（1-12 列）沿控制器正面的右侧延伸（控制器的右手侧）。
+ecoaegtnh.structure.desc.column_detail=每列：前后 2 格 × 高 3 格；前半侧为驱动盘位，后半侧为电容 + 通风口。
+ecoaegtnh.structure.desc.head=头部：前后 2 格 × 高 3 格 × 宽 2 格；ME 总线位于背侧右角。
+ecoaegtnh.structure.desc.power=由 ME 网络供电（无需 GT 能量舱）；无需维护。
+ecoaegtnh.structure.desc.length=投影/建造长度：手持 N 个（1-12）控制器物品可预览或建造 N 列结构。
+ecoaegtnh.structure.desc.current_length=当前驱动列长：%s
+# t62：成型时的升级树门控（盘位中的存储盘其链节点未激活）
+ecoaegtnh.structure.error.cell_tier_exceeded=盘位中的存储盘超出本阵列支持：需要解锁升级树节点 %s
+
+# ------------------------------------------------------------------
+# 控制器 tooltip（t38）
+# ------------------------------------------------------------------
+ecoaegtnh.tooltip.machinetype=ECO 存储阵列
+ecoaegtnh.tooltip.info.mass_storage=大型 AE 存储，驱动列可扩展 1-12 列
+ecoaegtnh.tooltip.info.power=完全由连接的 ME 网络供电（纯 AE 能量，无需 GT EU）
+ecoaegtnh.tooltip.info.no_maintenance=无需维护
+ecoaegtnh.tooltip.controller=中间层；驱动列在其右侧延伸
+ecoaegtnh.tooltip.footer.placement=放置控制器使其正面朝向自己：驱动列在控制器右侧（你的左手边）延伸，ME 总线位于背侧右角
+
+# t100: ME 存储组件/存储外壳（中间材料）+ 创造标签分类
+item.ecoaegtnh.storage_component_item_256k.name=ECO 256k ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_1024k.name=ECO 1024k ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_4096k.name=ECO 4096k ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_16m.name=ECO 16m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_64m.name=ECO 64m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_256m.name=ECO 256m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_1024m.name=ECO 1024m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_4096m.name=ECO 4096m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_16384m.name=ECO 16384m ME 存储组件（物品）
+item.ecoaegtnh.storage_component_item_universe.name=ECO 人造宇宙 ME 存储组件（物品）
+item.ecoaegtnh.storage_component_fluid_256k.name=ECO 256k ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_1024k.name=ECO 1024k ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_4096k.name=ECO 4096k ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_16m.name=ECO 16m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_64m.name=ECO 64m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_256m.name=ECO 256m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_1024m.name=ECO 1024m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_4096m.name=ECO 4096m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_16384m.name=ECO 16384m ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_universe.name=ECO 人造宇宙 ME 存储组件（流体）
+item.ecoaegtnh.storage_component_fluid_infwater.name=ECO 无限水 ME 存储组件（流体）
+item.ecoaegtnh.storage_component_essentia_256k.name=ECO 256k ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_1024k.name=ECO 1024k ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_4096k.name=ECO 4096k ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_16m.name=ECO 16m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_64m.name=ECO 64m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_256m.name=ECO 256m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_1024m.name=ECO 1024m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_4096m.name=ECO 4096m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_16384m.name=ECO 16384m ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_universe.name=ECO 人造宇宙 ME 存储组件（源质）
+item.ecoaegtnh.storage_component_essentia_arcane.name=ECO 魔导 ME 存储组件（源质）
+item.ecoaegtnh.storage_housing_item_l4.name=ECO L4 存储外壳（物品）
+item.ecoaegtnh.storage_housing_item_l6.name=ECO L6 存储外壳（物品）
+item.ecoaegtnh.storage_housing_item_l9.name=ECO L9 存储外壳（物品）
+item.ecoaegtnh.storage_housing_fluid_l4.name=ECO L4 存储外壳（流体）
+item.ecoaegtnh.storage_housing_fluid_l6.name=ECO L6 存储外壳（流体）
+item.ecoaegtnh.storage_housing_fluid_l9.name=ECO L9 存储外壳（流体）
+item.ecoaegtnh.storage_housing_essentia_l4.name=ECO L4 存储外壳（源质）
+item.ecoaegtnh.storage_housing_essentia_l6.name=ECO L6 存储外壳（源质）
+item.ecoaegtnh.storage_housing_essentia_l9.name=ECO L9 存储外壳（源质）
+# t41（用户拍板）：创造页重构为 2 标签——ECO 存储 + ECO 计算（旧 machines/cells/components/housings/ecal_cores 标签键移除）
+itemGroup.ecoaegtnh.storage=ECO 存储
+itemGroup.ecoaegtnh.calc=ECO 计算
+# ===== E-Calculator（可扩展计算子系统，阶段 A，方案 v1.5 §4.2 命名）=====
+tile.ecoaegtnh.ecalculator_casing.name=ECO 计算子系统外壳
+tile.ecoaegtnh.ecalculator_parallel_drive.name=ECO 并行核心驱动器
+tile.ecoaegtnh.ecalculator_thread_drive.name=ECO 线程核心驱动器
+tile.ecoaegtnh.ecalculator_cell_drive.name=ECO 晶阵驱动器
+tile.ecoaegtnh.ecalculator_me_channel.name=ECO ME 矩阵通讯接口
+tile.ecoaegtnh.ecalculator_transmitter_bus.name=ECO 超导晶阵传输总线
+ecoaegtnh.structure.desc.ecal_segments=扩展段（1-12 段）沿控制器正面右手侧延伸（与存储阵列一致）。
+ecoaegtnh.structure.desc.ecal_segment_detail=每段：前后 2 格 × 高 3 格；前侧为 2 晶阵驱动器 + 1 传输总线，后侧为 2 并行核心驱动器 + 1 线程核心驱动器（核心以物品插入驱动器）。
+ecoaegtnh.structure.desc.ecal_head=头部：前后 2 格 × 高 3 格 × 宽 3 格；ME 通道位于背侧右角（列侧，中间层）。
+ecoaegtnh.structure.desc.ecal_power=由 ME 网络供电（无需 GT 能量舱）；无需维护。
+ecoaegtnh.structure.desc.ecal_length=投影/建造长度：手持 N 个（1-12）控制器物品可预览或建造 N 段结构。
+ecoaegtnh.structure.desc.ecal_current_length=当前扩展段数：%s
+ecoaegtnh.structure.error.controller_shared=结构错误：正上方/正下方 2 格内存在另一台 ECO 计算主机控制器。
+# t49（里程碑）：唯一控制器显示名（去档位）——双键覆盖 GT 前缀机制两种可能（t52：旧 c4/c6/c9 档位键已删）
+gt.blockmachines.ecoaegtnh.ecalculator.array.name=ECO 可扩展计算子系统主机
+gt.blockmachines.ecalculator.array.name=ECO 可扩展计算子系统主机
+# t53: single host — machine-type line without the tier marker
+ecoaegtnh.tooltip.ecal.machinetype=ECO 可扩展计算子系统主机
+ecoaegtnh.tooltip.ecal.info.compute=接入 AE2 合成系统提供可扩展计算能力（多台合成 CPU 并行执行任务）。线程/并行/超线程槽位与字节池容量随里程碑线等级提升（投料升级解锁）；可用字节低于总量 10%（红线）时暂停新任务。
+ecoaegtnh.tooltip.ecal.info.power=由 ME 网络供电（无需 GT 能量舱）；无需维护。
+ecoaegtnh.tooltip.ecal.info.no_maintenance=无需维护。
+ecoaegtnh.tooltip.ecal.controller=头部中间层；扩展段沿正面右手侧延伸
+ecoaegtnh.tooltip.ecal.footer.placement=放置控制器使其正面朝向自己：扩展段在控制器右侧（你的左手边）延伸，ME 通道位于背侧右角
+# ===== E-Calculator 阶段 C：控制器 GUI（MUI1 量子计算机同款） =====
+ecoaegtnh.gui.ecal.structure=结构：
+ecoaegtnh.gui.ecal.valid=成型
+ecoaegtnh.gui.ecal.invalid=未成型
+ecoaegtnh.gui.ecal.channel=ME 通道：
+ecoaegtnh.gui.ecal.channel.connected=已连接
+ecoaegtnh.gui.ecal.channel.offline=未连接
+ecoaegtnh.gui.ecal.channel.missing=缺失
+ecoaegtnh.gui.ecal.segments=扩展段：
+ecoaegtnh.gui.ecal.bytes=字节（已用/可用/总量）：
+ecoaegtnh.gui.ecal.bytes.redline.short=红线
+ecoaegtnh.gui.ecal.parallelism=并行：
+ecoaegtnh.gui.ecal.threads=线程：
+ecoaegtnh.gui.ecal.threads.hyper=超线程
+ecoaegtnh.gui.ecal.threads.builtin=内置
+ecoaegtnh.gui.ecal.threads.external=外置
+ecoaegtnh.gui.ecal.threads.total=总计
+ecoaegtnh.gui.ecal.cores=线程核心：
+ecoaegtnh.gui.ecal.vcpu=待命 vCPU：
+ecoaegtnh.gui.ecal.vcpu.ready=就绪
+ecoaegtnh.gui.ecal.vcpu.none=无
+ecoaegtnh.ecal.vcpu.submit_rejected=池容量不足：任务需要 %s 字节（含超线程 +10%% 预留），当前可用 %s
+ecoaegtnh.gui.ecal.tasks=进行中任务：
+ecoaegtnh.gui.ecal.power=耗能：
+ecoaegtnh.gui.ecal.core_line=§7线程核心 %d：§f线程 §e%d§7 · 超线程 §e%d§7 · 任务 §e%d
+ecoaegtnh.gui.ecal.task_line=§f%s §7×%d §7· §e%d%% §7· §b%d§7µs/t §7· §d%d§7/t
+ecoaegtnh.gui.ecal.task.loading=（任务装载中）
+ecoaegtnh.gui.ecal.no_tasks=（无进行中任务）
+# LED 悬停
+ecoaegtnh.gui.ecal.led.bytes=字节池：
+ecoaegtnh.gui.ecal.led.parallelism=并行：
+ecoaegtnh.gui.ecal.led.cores=线程核心：
+ecoaegtnh.gui.ecal.led.bytes.redline_ok=10% 红线未触发（可用 ≥ 总量的 10%，新任务可启动）
+ecoaegtnh.gui.ecal.led.bytes.redline_hit=10% 红线已触发：可用低于总量的 10%，暂停新任务
+# ===== E-Calculator t28：闪存晶阵 9 尺寸（k 级，显示名尺寸式） =====
+item.ecoaegtnh.ecalculator_cell_256k.name=ECO 闪存晶阵 (256k)
+item.ecoaegtnh.ecalculator_cell_1024k.name=ECO 闪存晶阵 (1024k)
+item.ecoaegtnh.ecalculator_cell_4096k.name=ECO 闪存晶阵 (4096k)
+# ===== E-Calculator t13：晶阵驱动器 shift+右键 交互提示 =====
+ecoaegtnh.ecal.cell.not_formed=结构未成型，无法放入闪存晶阵
+ecoaegtnh.ecal.cell.tier_not_supported=该闪存晶阵需要更高级的控制器
+ecoaegtnh.ecal.cell.inserted=已放入闪存晶阵
+ecoaegtnh.ecal.cell.removed=已取出闪存晶阵
+# ===== E-Calculator t14（用户反馈第 5 点）：功能方块悬停 tooltip =====
+ecoaegtnh.tooltip.ecal.block.parallel_drive=并行核心驱动器：1 槽，shift+右键 放入/取出并行核心（并行核心物品提供并行计算能力，全档通用）
+ecoaegtnh.tooltip.ecal.block.thread_drive=线程核心驱动器：1 槽，shift+右键 放入/取出线程核心（线程核心物品提供线程槽位并承接 vCPU 任务，全档通用）
+ecoaegtnh.tooltip.ecal.block.cell_drive=晶阵驱动器提供闪存晶阵存储空间：1 槽，可放入分级闪存晶阵（k 级 → C4+、M 级 → C6+、大M 级 → 仅 C9）
+ecoaegtnh.tooltip.ecal.block.me_channel=矩阵通讯接口是子系统与 ME 网络的协议兼容层：连接 ME 线缆以接入合成任务（vCPU 经此对外提供），不消耗额外能源
+ecoaegtnh.tooltip.ecal.block.transmitter_bus=超导晶阵传输总线：扩展段内计算数据的传输通道
+ecoaegtnh.tooltip.ecal.block.casing=结构组件：构成计算主机头部与扩展段的外壳
+# ===== E-Calculator t35：可插入核心物品（并行 ×9 + 线程 ×6，里程碑等级门控） =====
+item.ecoaegtnh.ecal_parallel_core_1.name=ECO 并行核心 (1)
+item.ecoaegtnh.ecal_parallel_core_4.name=ECO 并行核心 (4)
+item.ecoaegtnh.ecal_parallel_core_16.name=ECO 并行核心 (16)
+item.ecoaegtnh.ecal_parallel_core_64.name=ECO 并行核心 (64)
+item.ecoaegtnh.ecal_parallel_core_256.name=ECO 并行核心 (256)
+item.ecoaegtnh.ecal_parallel_core_1024.name=ECO 并行核心 (1024)
+item.ecoaegtnh.ecal_parallel_core_4096.name=ECO 并行核心 (4096)
+item.ecoaegtnh.ecal_parallel_core_16384.name=ECO 并行核心 (16384)
+item.ecoaegtnh.ecal_parallel_core_65536.name=ECO 并行核心 (65536)
+item.ecoaegtnh.ecal_thread_core_1.name=ECO 线程核心 (1)
+item.ecoaegtnh.ecal_thread_core_4.name=ECO 线程核心 (4)
+item.ecoaegtnh.ecal_thread_core_16.name=ECO 线程核心 (16)
+item.ecoaegtnh.ecal_thread_core_32.name=ECO 线程核心 (32)
+item.ecoaegtnh.ecal_thread_core_64.name=ECO 线程核心 (64)
+item.ecoaegtnh.ecal_thread_core_hyper_2.name=ECO 超线程核心 (4)
+item.ecoaegtnh.ecal_thread_core_hyper_4.name=ECO 超线程核心 (8)
+item.ecoaegtnh.ecal_thread_core_hyper_8.name=ECO 超线程核心 (16)
+ecoaegtnh.tooltip.ecal.parallel_core=并行：%s（放入并行核心驱动器计入主机并行总量，全档通用）
+ecoaegtnh.tooltip.ecal.thread_core=线程：%s（放入线程核心驱动器提供任务线程槽位）
+ecoaegtnh.tooltip.ecal.thread_core.hyper=线程：%s + 超线程 %s（本核心档位 %s+%s），超线程任务额外占用 +10%% 字节
+# ===== E-Calculator t35：核心驱动器 shift+右键 交互提示 =====
+ecoaegtnh.ecal.core.not_formed=结构未成型，无法放入核心
+ecoaegtnh.ecal.core.inserted=已放入核心
+ecoaegtnh.ecal.core.removed=已取出核心
+# ===== E-Calculator t28：闪存晶阵 M 级 / 大M 级 + 公共 tooltip =====
+item.ecoaegtnh.ecalculator_cell_16m.name=ECO 闪存晶阵 (16M)
+item.ecoaegtnh.ecalculator_cell_64m.name=ECO 闪存晶阵 (64M)
+item.ecoaegtnh.ecalculator_cell_256m.name=ECO 闪存晶阵 (256M)
+item.ecoaegtnh.ecalculator_cell_1024m.name=ECO 闪存晶阵 (1024M)
+item.ecoaegtnh.ecalculator_cell_4096m.name=ECO 闪存晶阵 (4096M)
+item.ecoaegtnh.ecalculator_cell_16384m.name=ECO 闪存晶阵 (16384M)
+item.ecoaegtnh.ecalculator_cell_singularity.name=ECO 奇点闪存晶阵
+ecoaegtnh.ecal.cell.tip.bytes=%s AE 字节
+ecoaegtnh.ecal.cell.tip.group.k=k 级晶阵
+ecoaegtnh.ecal.cell.tip.group.m=M 级晶阵
+ecoaegtnh.ecal.cell.tip.group.bigm=大M 级晶阵
+# t53: milestone-line gates replace the C4/C6/C9 tier wording
+ecoaegtnh.ecal.cell.tip.tier.k=需要晶阵主线 Lv.1 及以上（放入晶阵驱动器计入字节池；可用低于总量 10% 时暂停新任务）
+ecoaegtnh.ecal.cell.tip.tier.m=需要晶阵主线 Lv.2 及以上（放入晶阵驱动器计入字节池；可用低于总量 10% 时暂停新任务）
+ecoaegtnh.ecal.cell.tip.tier.bigm=需要晶阵主线 Lv.3（1024M/4096M）或 Lv.4（16384M）（放入晶阵驱动器计入字节池；可用低于总量 10% 时暂停新任务）
+# ===== E-Calculator t25：AE 合成状态界面 ECO vCPU 区分 =====
+ecoaegtnh.gui.ecal.cpu.threads=可用线程: %d
+ecoaegtnh.gui.ecal.cpu.threads_hyper=可用线程: %d（+%d 超线程）
+# t63：里程碑体系已由升级树取代——旧 milestone.* 与等级门控键删除；仅保留仍被引用的键
+ecoaegtnh.gui.ecal.milestone.back=返回主面板
+ecoaegtnh.gui.ecal.upgrade.button=升级树
+ecoaegtnh.gui.ecal.upgrade.button_tooltip=打开升级树：节点详情与材料投入
+ecoaegtnh.ecal.cell.node_not_supported=需要先解锁升级树节点 %s（晶阵链）
+ecoaegtnh.ecal.core.parallel.node_not_supported=需要先解锁升级树节点 %s（并行链）
+ecoaegtnh.ecal.core.thread.node_not_supported=需要先解锁升级树节点 %s（线程/超线程链）
+# ===== E-Calculator t60/t61：升级树（去货币/去等级：材料提交解锁） =====
+ecoaegtnh.gui.upgrade.overview.title=升级树
+ecoaegtnh.gui.upgrade.overview.hint=点击节点查看详情并投入材料
+ecoaegtnh.gui.upgrade.overview.click=点击查看详情
+ecoaegtnh.gui.upgrade.chain.cell=晶阵
+ecoaegtnh.gui.upgrade.chain.parallel=并行
+ecoaegtnh.gui.upgrade.chain.thread=线程
+ecoaegtnh.gui.upgrade.chain.hyper=超线程
+ecoaegtnh.gui.upgrade.chain.overclock=超频
+ecoaegtnh.gui.upgrade.state.active=已激活
+ecoaegtnh.gui.upgrade.state.ready=可激活
+ecoaegtnh.gui.upgrade.requires=前置:
+ecoaegtnh.gui.upgrade.none=无
+ecoaegtnh.gui.upgrade.detail.empty=未选择节点
+ecoaegtnh.gui.upgrade.detail.material_button=材料投入
+ecoaegtnh.gui.upgrade.material.none=无需材料
+# t71：材料窗口神锻化文案
+ecoaegtnh.gui.upgrade.material.title=支付升级费用
+# t63：材料行显示（已付/需求）
+ecoaegtnh.gui.upgrade.material.paid=已付
+ecoaegtnh.gui.upgrade.material.required=需求
+ecoaegtnh.gui.upgrade.material.staging=暂存区（提交后消耗，不可取回）
+ecoaegtnh.gui.upgrade.material.submit=点此确认消耗升级材料
+ecoaegtnh.gui.upgrade.material.submit_tip=将暂存区的材料投入所选节点；满足全部需求后自动激活
+ecoaegtnh.gui.upgrade.material.open=打开材料投入窗口
+ecoaegtnh.gui.upgrade.activated=⚡ 升级已激活：%s
+# 升级树节点（计算：单主链+分支 26 节点，t65）
+ecoaegtnh.upgrade.node.N1.name=机器基础
+ecoaegtnh.upgrade.node.N1.effect=机器基础：初始字节池 12M（免费）
+ecoaegtnh.upgrade.node.N2.name=晶阵·256k
+ecoaegtnh.upgrade.node.N2.effect=解锁 256k 晶阵（字节池 12M）
+ecoaegtnh.upgrade.node.N3.name=晶阵·1024k
+ecoaegtnh.upgrade.node.N3.effect=解锁 1024k 晶阵（字节池 64M）
+ecoaegtnh.upgrade.node.N4.name=晶阵·4096k
+ecoaegtnh.upgrade.node.N4.effect=解锁 4096k 晶阵（字节池 256M），开启线程/并行分支
+ecoaegtnh.upgrade.node.N5.name=晶阵·16M
+ecoaegtnh.upgrade.node.N5.effect=解锁 16M 晶阵（字节池 1G）
+ecoaegtnh.upgrade.node.N6.name=晶阵·64M
+ecoaegtnh.upgrade.node.N6.effect=解锁 64M 晶阵（字节池 4G）
+ecoaegtnh.upgrade.node.N7.name=晶阵·256M
+ecoaegtnh.upgrade.node.N7.effect=解锁 256M 晶阵（字节池 16G）
+ecoaegtnh.upgrade.node.N8.name=晶阵·1024M
+ecoaegtnh.upgrade.node.N8.effect=解锁 1024M 晶阵（字节池 64G）
+ecoaegtnh.upgrade.node.N9.name=晶阵·4096M
+ecoaegtnh.upgrade.node.N9.effect=解锁 4096M 晶阵（字节池 256G）
+ecoaegtnh.upgrade.node.N10.name=晶阵·16384M
+ecoaegtnh.upgrade.node.N10.effect=解锁 16384M 晶阵，字节池上限移除
+ecoaegtnh.upgrade.node.N11.name=晶阵·奇点
+ecoaegtnh.upgrade.node.N11.effect=解锁奇点闪存晶阵（无限字节池）
+ecoaegtnh.upgrade.node.T1.name=线程·1
+ecoaegtnh.upgrade.node.T1.effect=解锁 1 线程核心（需要 晶阵·4096k）
+ecoaegtnh.upgrade.node.T2.name=线程·4
+ecoaegtnh.upgrade.node.T2.effect=解锁 4 线程核心
+ecoaegtnh.upgrade.node.T3.name=线程·16
+ecoaegtnh.upgrade.node.T3.effect=解锁 16 线程核心
+ecoaegtnh.upgrade.node.T4.name=线程·32
+ecoaegtnh.upgrade.node.T4.effect=解锁 32 线程核心
+ecoaegtnh.upgrade.node.T5.name=线程·64
+ecoaegtnh.upgrade.node.T5.effect=解锁 64 线程核心
+ecoaegtnh.upgrade.node.H1.name=超线程·2
+ecoaegtnh.upgrade.node.H1.effect=超线程 +2（需要 线程·4）
+ecoaegtnh.upgrade.node.H2.name=超线程·4
+ecoaegtnh.upgrade.node.H2.effect=超线程 +4（需要 线程·16）
+ecoaegtnh.upgrade.node.H3.name=超线程·8
+ecoaegtnh.upgrade.node.H3.effect=超线程 +8（需要 线程·16）
+ecoaegtnh.upgrade.node.P1.name=并行·1
+ecoaegtnh.upgrade.node.P1.effect=解锁 1 并行核心（需要 晶阵·4096k）
+ecoaegtnh.upgrade.node.P2.name=并行·4
+ecoaegtnh.upgrade.node.P2.effect=解锁 4 并行核心
+ecoaegtnh.upgrade.node.P3.name=并行·16
+ecoaegtnh.upgrade.node.P3.effect=解锁 16 并行核心
+ecoaegtnh.upgrade.node.P4.name=并行·64
+ecoaegtnh.upgrade.node.P4.effect=解锁 64 并行核心
+ecoaegtnh.upgrade.node.P5.name=并行·256
+ecoaegtnh.upgrade.node.P5.effect=解锁 256 并行核心
+ecoaegtnh.upgrade.node.P6.name=并行·1024
+ecoaegtnh.upgrade.node.P6.effect=解锁 1024 并行核心
+ecoaegtnh.upgrade.node.P7.name=并行·4096
+ecoaegtnh.upgrade.node.P7.effect=解锁 4096 并行核心
+ecoaegtnh.upgrade.node.P8.name=并行·16384
+ecoaegtnh.upgrade.node.P8.effect=解锁 16384 并行核心
+ecoaegtnh.upgrade.node.P9.name=并行·65536
+ecoaegtnh.upgrade.node.P9.effect=解锁 65536 并行核心
+ecoaegtnh.upgrade.node.OC.name=超频模式
+ecoaegtnh.upgrade.node.OC.effect=红线放宽至 5%，超线程存储 +10% 免额（需要 晶阵·16384M + 线程·16 + 超线程·8 + 并行·65536）
+# t67：节点短名（总览按钮下方居中文字）
+ecoaegtnh.upgrade.node.N1.short=由此开始
+ecoaegtnh.upgrade.node.N2.short=256k
+ecoaegtnh.upgrade.node.N3.short=1024k
+ecoaegtnh.upgrade.node.N4.short=4096k
+ecoaegtnh.upgrade.node.N5.short=16M
+ecoaegtnh.upgrade.node.N6.short=64M
+ecoaegtnh.upgrade.node.N7.short=256M
+ecoaegtnh.upgrade.node.N8.short=1024M
+ecoaegtnh.upgrade.node.N9.short=4096M
+ecoaegtnh.upgrade.node.N10.short=16384M
+ecoaegtnh.upgrade.node.N11.short=奇点
+ecoaegtnh.upgrade.node.T1.short=线程1
+ecoaegtnh.upgrade.node.T2.short=线程4
+ecoaegtnh.upgrade.node.T3.short=线程16
+ecoaegtnh.upgrade.node.T4.short=线程32
+ecoaegtnh.upgrade.node.T5.short=线程64
+ecoaegtnh.upgrade.node.H1.short=超线程2
+ecoaegtnh.upgrade.node.H2.short=超线程4
+ecoaegtnh.upgrade.node.H3.short=超线程8
+ecoaegtnh.upgrade.node.P1.short=并行1
+ecoaegtnh.upgrade.node.P2.short=并行4
+ecoaegtnh.upgrade.node.P3.short=并行16
+ecoaegtnh.upgrade.node.P4.short=并行64
+ecoaegtnh.upgrade.node.P5.short=并行256
+ecoaegtnh.upgrade.node.P6.short=并行1024
+ecoaegtnh.upgrade.node.P7.short=并行4096
+ecoaegtnh.upgrade.node.P8.short=并行16384
+ecoaegtnh.upgrade.node.P9.short=并行65536
+ecoaegtnh.upgrade.node.OC.short=超频
+# ---- t114g 内置线程（机器自带 1 线程，B1 +3、B2 +2 超线程） ----
+ecoaegtnh.upgrade.node.B1.name=内置线程
+ecoaegtnh.upgrade.node.B1.effect=内置线程 +3（基础 1 → 共 4，无需线程核心驱动器）
+ecoaegtnh.upgrade.node.B2.name=内置超线程
+ecoaegtnh.upgrade.node.B2.effect=内置超线程 +2
+ecoaegtnh.upgrade.node.B1.short=内置线程
+ecoaegtnh.upgrade.node.B2.short=内置超线程
+# ===== E-Calculator t112：存储升级树 27 节点（一档一个盘：3 类型 × 9 尺寸，每链独立） =====
+# ---- 物品链 I1..I9（每节点对应一个尺寸的物品盘） ----
+ecoaegtnh.upgrade.node.I1.name=物品·256k
+ecoaegtnh.upgrade.node.I1.effect=解锁 256k 物品存储盘
+ecoaegtnh.upgrade.node.I2.name=物品·1024k
+ecoaegtnh.upgrade.node.I2.effect=解锁 1024k 物品存储盘
+ecoaegtnh.upgrade.node.I3.name=物品·4096k
+ecoaegtnh.upgrade.node.I3.effect=解锁 4096k 物品存储盘
+ecoaegtnh.upgrade.node.I4.name=物品·16M
+ecoaegtnh.upgrade.node.I4.effect=解锁 16M 物品存储盘
+ecoaegtnh.upgrade.node.I5.name=物品·64M
+ecoaegtnh.upgrade.node.I5.effect=解锁 64M 物品存储盘
+ecoaegtnh.upgrade.node.I6.name=物品·256M
+ecoaegtnh.upgrade.node.I6.effect=解锁 256M 物品存储盘
+ecoaegtnh.upgrade.node.I7.name=物品·1024M
+ecoaegtnh.upgrade.node.I7.effect=解锁 1024M 物品存储盘
+ecoaegtnh.upgrade.node.I8.name=物品·4096M
+ecoaegtnh.upgrade.node.I8.effect=解锁 4096M 物品存储盘
+ecoaegtnh.upgrade.node.I9.name=物品·16384M
+ecoaegtnh.upgrade.node.I9.effect=解锁 16384M 物品存储盘
+# ---- 流体链 F1..F9 ----
+ecoaegtnh.upgrade.node.F1.name=流体·256k
+ecoaegtnh.upgrade.node.F1.effect=解锁 256k 流体存储盘
+ecoaegtnh.upgrade.node.F2.name=流体·1024k
+ecoaegtnh.upgrade.node.F2.effect=解锁 1024k 流体存储盘
+ecoaegtnh.upgrade.node.F3.name=流体·4096k
+ecoaegtnh.upgrade.node.F3.effect=解锁 4096k 流体存储盘
+ecoaegtnh.upgrade.node.F4.name=流体·16M
+ecoaegtnh.upgrade.node.F4.effect=解锁 16M 流体存储盘
+ecoaegtnh.upgrade.node.F5.name=流体·64M
+ecoaegtnh.upgrade.node.F5.effect=解锁 64M 流体存储盘
+ecoaegtnh.upgrade.node.F6.name=流体·256M
+ecoaegtnh.upgrade.node.F6.effect=解锁 256M 流体存储盘
+ecoaegtnh.upgrade.node.F7.name=流体·1024M
+ecoaegtnh.upgrade.node.F7.effect=解锁 1024M 流体存储盘
+ecoaegtnh.upgrade.node.F8.name=流体·4096M
+ecoaegtnh.upgrade.node.F8.effect=解锁 4096M 流体存储盘
+ecoaegtnh.upgrade.node.F9.name=流体·16384M
+ecoaegtnh.upgrade.node.F9.effect=解锁 16384M 流体存储盘
+# ---- 源质链 E1..E9 ----
+ecoaegtnh.upgrade.node.E1.name=源质·256k
+ecoaegtnh.upgrade.node.E1.effect=解锁 256k 源质存储盘（需要神秘时代 4 加载）
+ecoaegtnh.upgrade.node.E2.name=源质·1024k
+ecoaegtnh.upgrade.node.E2.effect=解锁 1024k 源质存储盘
+ecoaegtnh.upgrade.node.E3.name=源质·4096k
+ecoaegtnh.upgrade.node.E3.effect=解锁 4096k 源质存储盘
+ecoaegtnh.upgrade.node.E4.name=源质·16M
+ecoaegtnh.upgrade.node.E4.effect=解锁 16M 源质存储盘
+ecoaegtnh.upgrade.node.E5.name=源质·64M
+ecoaegtnh.upgrade.node.E5.effect=解锁 64M 源质存储盘
+ecoaegtnh.upgrade.node.E6.name=源质·256M
+ecoaegtnh.upgrade.node.E6.effect=解锁 256M 源质存储盘
+ecoaegtnh.upgrade.node.E7.name=源质·1024M
+ecoaegtnh.upgrade.node.E7.effect=解锁 1024M 源质存储盘
+ecoaegtnh.upgrade.node.E8.name=源质·4096M
+ecoaegtnh.upgrade.node.E8.effect=解锁 4096M 源质存储盘
+ecoaegtnh.upgrade.node.E9.name=源质·16384M
+ecoaegtnh.upgrade.node.E9.effect=解锁 16384M 源质存储盘
+# ---- t113 人造宇宙档（第 10 档，三链各一） ----
+ecoaegtnh.upgrade.node.I10.name=物品·人造宇宙
+ecoaegtnh.upgrade.node.I10.effect=解锁人造宇宙物品存储盘（576,460,752,303,423,487 字节）
+ecoaegtnh.upgrade.node.F10.name=流体·人造宇宙
+ecoaegtnh.upgrade.node.F10.effect=解锁人造宇宙流体存储盘（576,460,752,303,423,487 字节）
+ecoaegtnh.upgrade.node.E10.name=源质·人造宇宙
+ecoaegtnh.upgrade.node.E10.effect=解锁人造宇宙源质存储盘（576,460,752,303,423,487 字节）
+# ---- t114 无限水 / 魔导源质（放各自链最后） ----
+ecoaegtnh.upgrade.node.F11.name=流体·无限水
+ecoaegtnh.upgrade.node.F11.effect=解锁无限水流体盘（无限容量，仅存储水）
+ecoaegtnh.upgrade.node.E11.name=源质·魔导
+ecoaegtnh.upgrade.node.E11.effect=解锁魔导源质盘（无限容量，可存储全部源质）
+# ---- 按钮短名 ----
+ecoaegtnh.upgrade.node.I1.short=物品256k
+ecoaegtnh.upgrade.node.I2.short=物品1024k
+ecoaegtnh.upgrade.node.I3.short=物品4096k
+ecoaegtnh.upgrade.node.I4.short=物品16M
+ecoaegtnh.upgrade.node.I5.short=物品64M
+ecoaegtnh.upgrade.node.I6.short=物品256M
+ecoaegtnh.upgrade.node.I7.short=物品1024M
+ecoaegtnh.upgrade.node.I8.short=物品4096M
+ecoaegtnh.upgrade.node.I9.short=物品16384M
+ecoaegtnh.upgrade.node.F1.short=流体256k
+ecoaegtnh.upgrade.node.F2.short=流体1024k
+ecoaegtnh.upgrade.node.F3.short=流体4096k
+ecoaegtnh.upgrade.node.F4.short=流体16M
+ecoaegtnh.upgrade.node.F5.short=流体64M
+ecoaegtnh.upgrade.node.F6.short=流体256M
+ecoaegtnh.upgrade.node.F7.short=流体1024M
+ecoaegtnh.upgrade.node.F8.short=流体4096M
+ecoaegtnh.upgrade.node.F9.short=流体16384M
+ecoaegtnh.upgrade.node.E1.short=源质256k
+ecoaegtnh.upgrade.node.E2.short=源质1024k
+ecoaegtnh.upgrade.node.E3.short=源质4096k
+ecoaegtnh.upgrade.node.E4.short=源质16M
+ecoaegtnh.upgrade.node.E5.short=源质64M
+ecoaegtnh.upgrade.node.E6.short=源质256M
+ecoaegtnh.upgrade.node.E7.short=源质1024M
+ecoaegtnh.upgrade.node.E8.short=源质4096M
+ecoaegtnh.upgrade.node.E9.short=源质16384M
+ecoaegtnh.upgrade.node.I10.short=物品宇宙
+ecoaegtnh.upgrade.node.F10.short=流体宇宙
+ecoaegtnh.upgrade.node.E10.short=源质宇宙
+ecoaegtnh.upgrade.node.F11.short=流体无限水
+ecoaegtnh.upgrade.node.E11.short=源质魔导

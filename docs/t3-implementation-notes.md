@@ -1062,3 +1062,9 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **优化 2（低）**：Ecal 性能日志 200t→600t（多主机时降日志噪音，30s 一条）。
 - **评估后跳过**：isActive/getGrid 注入的 controllerOf() 缓存——controllerOf 只是字段访问链，开销极小，缓存失效管理（结构重建）带来的 mixin 复杂度风险大于收益。
 - **验证**：javap 确认 onPostTick 无 invalidateHandlers、onCellChanged 4 处调用（+getStackInSlotOnClosing）；BUILD SUCCESSFUL；部署两端 SHA256 = DE0A90FE2CD0F7EC6EBE715F9DE34360B899872ADDF073A7EEA94A02930B0D24（364395 B，三端一致）；git commit。
+
+## t116 vCPU 相同配方合并（用户需求，备份后实现）
+- **需求**：用 vCPU 下单 A 后再次下单 A，若池字节够则合并进正在运行的 vCPU（不占新线程槽）——仿 GTNHAE（AE2U fork）的合成请求合并。
+- **根因**：AE2U 原版 mergeJob 条件 availableStorage >= usedStorage + newBytes 对 vCPU 恒不成立（onVirtualCPUSubmitJob 把 availableStorage 设为任务字节语义）→ 原版合并路径永不触发。
+- **方案 B（实施）**：submitJob HEAD 注入在 t114g 预检之前加合并分支——isBusy + myLastLink.isStandalone + getFinalMultiOutput().isSameType(job.getOutput()) + 池剩余（getAvailableBytes）>= newBytes(+hyper 10%) → 直接调原版 public mergeJob()；记账：usedExtraStorage += extra、availableStorage += newBytes+extra（保持任务字节语义，池记账 Σ availableStorage 自动正确）；@Unique mergedJob 标志让 RETURN 注入跳过 onVirtualCPUSubmitJob（防重复分配线程槽/vCPU 号）。availableStorage 语义与池记账零改动。
+- **验证**：BUILD SUCCESSFUL；javap 确认 mergeJob 调用 + isBusy/getFinalMultiOutput @Shadow + mergedJob 标志读写；部署两端 SHA256 = 1D968CB22BE4440FDDB1B9EB1313E3666024AB9FA565B68F54C0512057191D36（364843 B，三端一致）；git commit。游戏内验证待用户：下单 A→再下单 A→线程槽不增、输出累计。

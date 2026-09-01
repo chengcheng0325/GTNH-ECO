@@ -1055,3 +1055,10 @@ ewStandbyCluster 提取公共创建（bytes/parallelism/CraftingAllow 继承）�
 - **t114x 补**：按钮纹理 PNG 重编码（去掉 sRGB/gAMA/pHYs 辅助 chunk，249B→200B，与 TecTech 同构 IHDR+IDAT+IEND）——根因排查见 t114q 崩溃记录；部署两端 jar 364436 B，SHA256 = `E9EBD75AAABF2BB10A1100A17C4D0EA3AA724457BCCDA60376B83F257D7430BB`。
 - **t114z/t114aa 部署**：两端 jar 364440 B，SHA256 = `6E013A8E78971548099F8DAB4130F728155FF91964AB6BFE5DD3DC024CFB2C8B`（三端一致）。
 - **t114ab（用户纠正）**：并行核心**两个电路板输入都要逐档升级**——我只升了 ×2 的（Elite..Cosmic），×4 的 circuitData 固定没动。修正：新增 circuits4 链 = {circuitData, circuitElite, circuitMaster, circuitUltimate, circuitSuperconductor, circuitInfinite, circuitBio, circuitOptical, circuitExotic}（Data 起每档 +1，始终比 ×2 链低 1 档）。javap 确认两条链 18 个矿词 + 18 组部件 damage 全对；部署两端 jar 364492 B，SHA256 = `7E0434A58D2D997ABD73AFB6E18F0E4A68BCEED1D83F6ACE3441D0DEDA5471FC`（三端一致）。
+
+## t115 多人性能优化第一批（调研驱动）
+- **调研**：ae2fc/NovaEngineering/GT++/NeoECOAE/TST 源码 + AE2U 源码 + GTNH 服务器性能文档（详见工作区根 GTNH-服务器性能优化建议.md）。
+- **优化 1（高）**：E-Storage drive handler 缓存改**纯事件驱动**——MTEEcoStorageArray.onPostTick 去掉每 5 tick 的 invalidateHandlers 周期重建（cellStack 变化路径 setInventorySlotContents/decrStackSize/interactWithCell/readFromNBT 均已触发 onCellChanged；getStackInSlotOnClosing 补上 onCellChanged）。参考 ae2fc"只按 cell 变化缓存"。
+- **优化 2（低）**：Ecal 性能日志 200t→600t（多主机时降日志噪音，30s 一条）。
+- **评估后跳过**：isActive/getGrid 注入的 controllerOf() 缓存——controllerOf 只是字段访问链，开销极小，缓存失效管理（结构重建）带来的 mixin 复杂度风险大于收益。
+- **验证**：javap 确认 onPostTick 无 invalidateHandlers、onCellChanged 4 处调用（+getStackInSlotOnClosing）；BUILD SUCCESSFUL；部署两端 SHA256 = DE0A90FE2CD0F7EC6EBE715F9DE34360B899872ADDF073A7EEA94A02930B0D24（364395 B，三端一致）；git commit。

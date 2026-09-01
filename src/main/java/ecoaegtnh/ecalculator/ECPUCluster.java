@@ -72,4 +72,14 @@ public interface ECPUCluster {
     EcoTimeRecorder ecoaegtnh$getTimeRecorder();
 
     EcoTimeRecorder ecoaegtnh$getParallelismRecorder();
+
+    /**
+     * t116b: "effective available storage" for the AE2U job-merge checks — for a vCPU this is the
+     * CONTROLLER POOL remaining bytes plus the current task's used bytes, so the vanilla merge
+     * condition {@code available >= used + newJobBytes} becomes {@code poolFree >= newJobBytes}.
+     * Non-vCPU clusters (interface default) return -1 → callers fall back to the vanilla field.
+     */
+    default long ecoaegtnh$effectiveAvailableStorage() {
+        return -1L;
+    }
 }

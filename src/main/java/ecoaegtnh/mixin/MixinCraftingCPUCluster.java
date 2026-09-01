@@ -87,6 +87,10 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Shadow
     private long availableStorage;
 
+    /** t116b: current job's used bytes (mergeJob adds to it; pool accounting is Σ availableStorage). */
+    @Shadow
+    private long usedStorage;
+
     @Shadow
     private boolean isDestroyed;
 
@@ -562,6 +566,19 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     public void ecoaegtnh$markDestroyed() {
         this.isDestroyed = true;
         this.isComplete = true;
+    }
+
+    /**
+     * t116b: vCPU effective available = pool remaining + current task bytes (used by the AE2U
+     * job-merge checks in ContainerCraftConfirm/CraftingGridCache). Non-vCPU → -1.
+     */
+    @Unique
+    @Override
+    public long ecoaegtnh$effectiveAvailableStorage() {
+        if (this.ecoaegtnh$virtualCPUOwner == null) {
+            return -1L;
+        }
+        return this.ecoaegtnh$virtualCPUOwner.getAvailableBytes() + this.usedStorage;
     }
 
     @Unique

@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -78,5 +79,29 @@ public abstract class MixinCraftingGridCache {
         } else {
             original.call(instance, grid, eg, cc);
         }
+    }
+
+    /**
+     * t116b: in the auto CPU-selection loop of the 6-arg submitJob, a busy vCPU must be considered
+     * for the vanilla job-merge branch — redirect its availableStorage to the EFFECTIVE value
+     * (pool remaining + current task bytes), so {@code available >= used + newJobBytes} becomes
+     * {@code poolFree >= newJobBytes}. Non-vCPU clusters keep the vanilla field.
+     */
+    @Redirect(
+        method = "submitJob(Lappeng/api/networking/crafting/ICraftingJob;Lappeng/api/networking/crafting/ICraftingRequester;Lappeng/api/networking/crafting/ICraftingCPU;ZLappeng/api/networking/security/BaseActionSource;Z)Lappeng/api/networking/crafting/ICraftingLink;",
+        at = @At(
+            value = "INVOKE",
+            target = "Lappeng/me/cluster/implementations/CraftingCPUCluster;getAvailableStorage()J",
+            remap = false),
+        remap = false)
+    private long ecoaegtnh$redirectGridAvailableStorage(final CraftingCPUCluster cpu) {
+        ECPUCluster ec = ECPUCluster.from(cpu);
+        if (ec != null) {
+            long eff = ec.ecoaegtnh$effectiveAvailableStorage();
+            if (eff >= 0) {
+                return eff;
+            }
+        }
+        return cpu.getAvailableStorage();
     }
 }

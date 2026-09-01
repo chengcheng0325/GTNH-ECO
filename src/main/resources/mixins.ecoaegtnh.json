@@ -18,6 +18,7 @@
   ],
   "server": [
     "MixinCraftingCPUCluster",
-    "MixinCraftingGridCache"
+    "MixinCraftingGridCache",
+    "MixinContainerCraftConfirm"
   ]
 }

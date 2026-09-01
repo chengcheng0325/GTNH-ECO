@@ -901,11 +901,23 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
         this.totalBytes = total;
     }
 
-    /** Pool bytes not yet committed to tasks: totalBytes 鈭?危 thread-drive used storage. */
+    /**
+     * Pool bytes not yet committed to tasks: totalBytes − Σ thread-drive used storage −
+     * Σ built-in slot task bytes. t116c: the built-in thread/hyper clusters live in
+     * builtinThreadClusters/builtinHyperClusters (not in any TileEcalThreadDrive), so their
+     * availableStorage (task-bytes semantics) must be counted here too — otherwise the pool
+     * never shrinks while a built-in slot runs a job.
+     */
     public long getAvailableBytes() {
         long used = 0;
         for (TileEcalThreadDrive core : threadCores) {
             used += core.getUsedStorage();
+        }
+        for (CraftingCPUCluster cluster : builtinThreadClusters) {
+            used += cluster.getAvailableStorage();
+        }
+        for (CraftingCPUCluster cluster : builtinHyperClusters) {
+            used += cluster.getAvailableStorage();
         }
         return totalBytes - used;
     }

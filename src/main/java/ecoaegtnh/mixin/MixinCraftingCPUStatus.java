@@ -49,6 +49,9 @@ public abstract class MixinCraftingCPUStatus implements ECPUStatus {
     /** t114h: per-machine vCPU sequence id (running rows display "ECO vCPU #id"). */
     @Unique
     private int ecoaegtnh$ecVCPUId = 0;
+    /** t116d: vCPU effective storage (pool remaining + task bytes); -1 = vanilla CPU row. */
+    @Unique
+    private long ecoaegtnh$ecEffectiveStorage = -1L;
 
     @Inject(method = "<init>(Lappeng/api/networking/crafting/ICraftingCPU;I)V", at = @At("RETURN"))
     private void ecoaegtnh$injectInit(final ICraftingCPU cluster, final int serial, final CallbackInfo ci) {
@@ -60,6 +63,11 @@ public abstract class MixinCraftingCPUStatus implements ECPUStatus {
             this.ecoaegtnh$ecHyperThreads = ec.ecoaegtnh$getHostHyperThreads();
             this.ecoaegtnh$ecAssigned = ec.ecoaegtnh$getController() != null ? 1 : 0;
             this.ecoaegtnh$ecVCPUId = ec.ecoaegtnh$getVCPUId(); // t114h
+            // t116d: vCPU rows carry the effective storage for the client-side merge check.
+            long eff = ec.ecoaegtnh$effectiveAvailableStorage();
+            if (eff >= 0) {
+                this.ecoaegtnh$ecEffectiveStorage = eff;
+            }
         }
     }
 
@@ -71,6 +79,9 @@ public abstract class MixinCraftingCPUStatus implements ECPUStatus {
             this.ecoaegtnh$ecHyperThreads = i.getInteger("ecHyperThreads");
             this.ecoaegtnh$ecAssigned = i.getInteger("ecAssigned");
             this.ecoaegtnh$ecVCPUId = i.getInteger("ecVCPUId");
+            if (i.hasKey("ecEffStorage")) {
+                this.ecoaegtnh$ecEffectiveStorage = i.getLong("ecEffStorage");
+            }
         }
     }
 
@@ -84,6 +95,9 @@ public abstract class MixinCraftingCPUStatus implements ECPUStatus {
         i.setInteger("ecHyperThreads", this.ecoaegtnh$ecHyperThreads);
         i.setInteger("ecAssigned", this.ecoaegtnh$ecAssigned);
         i.setInteger("ecVCPUId", this.ecoaegtnh$ecVCPUId);
+        if (this.ecoaegtnh$ecEffectiveStorage >= 0) {
+            i.setLong("ecEffStorage", this.ecoaegtnh$ecEffectiveStorage);
+        }
     }
 
     @Unique
@@ -114,5 +128,17 @@ public abstract class MixinCraftingCPUStatus implements ECPUStatus {
     @Override
     public int ecoaegtnh$getVCPUId() {
         return ecoaegtnh$ecVCPUId;
+    }
+
+    @Unique
+    @Override
+    public boolean ecoaegtnh$isVCPU() {
+        return ecoaegtnh$ecEffectiveStorage >= 0;
+    }
+
+    @Unique
+    @Override
+    public long ecoaegtnh$getEffectiveStorage() {
+        return ecoaegtnh$ecEffectiveStorage;
     }
 }

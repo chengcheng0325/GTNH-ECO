@@ -33,4 +33,14 @@ public interface ECPUStatus {
 
     /** t114h: per-machine vCPU sequence id (running rows display "ECO vCPU #id"). */
     int ecoaegtnh$getVCPUId();
+
+    /** t116d: true when this row is an ECO vCPU (pool-accounted effective storage available). */
+    boolean ecoaegtnh$isVCPU();
+
+    /**
+     * t116d: effective available storage for vCPU rows — controller pool remaining + current task
+     * bytes (computed server-side at row creation, synced through NBT so the client-side
+     * {@code ContainerCraftConfirm.cpuMatches} can evaluate the AE2U job-merge condition).
+     */
+    long ecoaegtnh$getEffectiveStorage();
 }

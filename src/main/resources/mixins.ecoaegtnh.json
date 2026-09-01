@@ -10,7 +10,8 @@
     "MixinTileDrive",
     "MixinGridStorageCache",
     "MixinContainerNetworkStatus",
-    "MixinCraftingCPUStatus"
+    "MixinCraftingCPUStatus",
+    "MixinContainerCraftConfirm"
   ],
   "client": [
     "MixinGuiNetworkStatus",
@@ -18,7 +19,6 @@
   ],
   "server": [
     "MixinCraftingCPUCluster",
-    "MixinCraftingGridCache",
-    "MixinContainerCraftConfirm"
+    "MixinCraftingGridCache"
   ]
 }

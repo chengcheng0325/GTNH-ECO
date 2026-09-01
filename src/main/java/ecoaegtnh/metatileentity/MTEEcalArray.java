@@ -441,12 +441,10 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     public MTEEcalArray(int aID, String aName, String aNameRegional, int tier) {
         super(aID, aName, aNameRegional);
         this.tier = tier;
-        // H2 (audit): server-stop / dimension-unload refund hooks (registered once per MTE
-        // prototype instance — the handlers dispatch through the static active-controller list).
-        cpw.mods.fml.common.FMLCommonHandler.instance()
-            .bus()
-            .register(this);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
+        // H2 (audit): server-stop / dimension-unload refund hooks live in
+        // EcoaegtnhLifecycleHooks — NOT registered on this class: EventBus.register() reflects
+        // over this MTE's methods and trips NoClassDefFoundError on the dedicated server for
+        // @SideOnly(CLIENT) signatures (IResourceManager/ISidedInventory — same trap as t30).
     }
 
     public MTEEcalArray(String aName, int tier) {
@@ -501,37 +499,8 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     @Override
     public IMetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
         MTEEcalArray inst = new MTEEcalArray(this.mName, this.tier);
-        ACTIVE_CONTROLLERS.add(inst);
+        ecoaegtnh.EcoaegtnhLifecycleHooks.registerController(inst);
         return inst;
-    }
-
-    // H2 (audit): world instances register here so the prototype's server-stop handler can refund
-    // in-flight jobs on every active controller. Weak refs — no leak when a machine is discarded.
-    private static final java.util.Set<MTEEcalArray> ACTIVE_CONTROLLERS = java.util.Collections
-        .newSetFromMap(new java.util.WeakHashMap<MTEEcalArray, Boolean>());
-
-    /** H2 (audit): server stopping — cancel every in-flight job (refunds materials into the grid). */
-    @cpw.mods.fml.common.eventhandler.SubscribeEvent
-    public void onServerStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
-        for (MTEEcalArray controller : new java.util.ArrayList<>(ACTIVE_CONTROLLERS)) {
-            if (controller.getBaseMetaTileEntity() != null) {
-                controller.cancelAllInFlight("server stopping");
-            }
-        }
-    }
-
-    /** H2 (audit): a dimension unloads — refund jobs whose controller lives in that world. */
-    @cpw.mods.fml.common.eventhandler.SubscribeEvent
-    public void onWorldUnload(net.minecraftforge.event.world.WorldEvent.Unload event) {
-        if (event.world == null || event.world.isRemote) {
-            return;
-        }
-        for (MTEEcalArray controller : new java.util.ArrayList<>(ACTIVE_CONTROLLERS)) {
-            if (controller.getBaseMetaTileEntity() != null && controller.getBaseMetaTileEntity()
-                .getWorld() == event.world) {
-                controller.cancelAllInFlight("dimension unload");
-            }
-        }
     }
 
     // ------------------------------------------------------------------
@@ -1141,9 +1110,9 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     /**
      * M7 (audit): cancel + destroy every in-flight cluster (built-in slots and thread drives),
      * refunding job materials into the grid; then replenish the standby vCPU. Reuses the same
-     * cancel→destroy order as disassembleAll.
+     * cancel→destroy order as disassembleAll. Public: called from EcoaegtnhLifecycleHooks (H2).
      */
-    private void cancelAllInFlight(String reason) {
+    public void cancelAllInFlight(String reason) {
         LOG.info("Ecal: cancelling all in-flight vCPU jobs ({})", reason);
         for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinThreadClusters)) {
             cancelAndDestroyBuiltin(cluster);

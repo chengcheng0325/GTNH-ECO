@@ -1537,8 +1537,12 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         return list;
     }
 
+    // M6 (audit): part*100 overflows long for UNIVERSE-scale cells (used > 9.2e16) → negative
+    // percentages; saturate at 100 (percentOf can never exceed it) and guard the multiply.
     private static int percentOf(long part, long total) {
-        return total > 0 ? (int) (part * 100 / total) : 0;
+        if (total <= 0 || part <= 0) return 0;
+        if (part >= total || part > Long.MAX_VALUE / 100) return 100;
+        return (int) (part * 100 / total);
     }
 
     // ------------------------------------------------------------------
@@ -1562,19 +1566,67 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     }
 
     private int storedTypesOf(Class<? extends ItemEcoStorageCell> family) {
-        return (int) sumStat(family, Stat.STORED_TYPES);
+        return (int) cachedStat(family, Stat.STORED_TYPES);
     }
 
     private int totalTypesOf(Class<? extends ItemEcoStorageCell> family) {
-        return (int) sumStat(family, Stat.TOTAL_TYPES);
+        return (int) cachedStat(family, Stat.TOTAL_TYPES);
     }
 
     private long usedBytesOf(Class<? extends ItemEcoStorageCell> family) {
-        return sumStat(family, Stat.USED_BYTES);
+        return cachedStat(family, Stat.USED_BYTES);
     }
 
     private long totalBytesOf(Class<? extends ItemEcoStorageCell> family) {
-        return sumStat(family, Stat.TOTAL_BYTES);
+        return cachedStat(family, Stat.TOTAL_BYTES);
+    }
+
+    // M3 (audit): GUI stat cache — the 12 FakeSyncWidget suppliers call these up to 20 Hz while a
+    // GUI is open; each sumStat rebuilds every cell inventory (full NBT deserialization). Recompute
+    // once per 20 ticks and let the suppliers read the cache.
+    private long statItemStoredTypes, statItemTotalTypes, statItemUsedBytes, statItemTotalBytes;
+    private long statFluidStoredTypes, statFluidTotalTypes, statFluidUsedBytes, statFluidTotalBytes;
+    private long statEssentiaStoredTypes, statEssentiaTotalTypes, statEssentiaUsedBytes, statEssentiaTotalBytes;
+    private long lastStatRefreshTick = Long.MIN_VALUE;
+
+    private long cachedStat(Class<? extends ItemEcoStorageCell> family, Stat stat) {
+        refreshStatCacheIfStale();
+        boolean item = family == ItemEcoStorageCellItem.class;
+        boolean fluid = family == ItemEcoStorageCellFluid.class;
+        switch (stat) {
+            case STORED_TYPES:
+                return item ? statItemStoredTypes : fluid ? statFluidStoredTypes : statEssentiaStoredTypes;
+            case TOTAL_TYPES:
+                return item ? statItemTotalTypes : fluid ? statFluidTotalTypes : statEssentiaTotalTypes;
+            case USED_BYTES:
+                return item ? statItemUsedBytes : fluid ? statFluidUsedBytes : statEssentiaUsedBytes;
+            default:
+                return item ? statItemTotalBytes : fluid ? statFluidTotalBytes : statEssentiaTotalBytes;
+        }
+    }
+
+    private void refreshStatCacheIfStale() {
+        if (getBaseMetaTileEntity() == null || getBaseMetaTileEntity().getWorld() == null) {
+            return;
+        }
+        long t = getBaseMetaTileEntity().getWorld()
+            .getTotalWorldTime();
+        if (t - lastStatRefreshTick < 20) {
+            return;
+        }
+        lastStatRefreshTick = t;
+        statItemStoredTypes = sumStat(ItemEcoStorageCellItem.class, Stat.STORED_TYPES);
+        statItemTotalTypes = sumStat(ItemEcoStorageCellItem.class, Stat.TOTAL_TYPES);
+        statItemUsedBytes = sumStat(ItemEcoStorageCellItem.class, Stat.USED_BYTES);
+        statItemTotalBytes = sumStat(ItemEcoStorageCellItem.class, Stat.TOTAL_BYTES);
+        statFluidStoredTypes = sumStat(ItemEcoStorageCellFluid.class, Stat.STORED_TYPES);
+        statFluidTotalTypes = sumStat(ItemEcoStorageCellFluid.class, Stat.TOTAL_TYPES);
+        statFluidUsedBytes = sumStat(ItemEcoStorageCellFluid.class, Stat.USED_BYTES);
+        statFluidTotalBytes = sumStat(ItemEcoStorageCellFluid.class, Stat.TOTAL_BYTES);
+        statEssentiaStoredTypes = sumStat(ItemEcoStorageCellEssentia.class, Stat.STORED_TYPES);
+        statEssentiaTotalTypes = sumStat(ItemEcoStorageCellEssentia.class, Stat.TOTAL_TYPES);
+        statEssentiaUsedBytes = sumStat(ItemEcoStorageCellEssentia.class, Stat.USED_BYTES);
+        statEssentiaTotalBytes = sumStat(ItemEcoStorageCellEssentia.class, Stat.TOTAL_BYTES);
     }
 
     /** Which per-cell statistic a family sum aggregates. */

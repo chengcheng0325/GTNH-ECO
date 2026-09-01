@@ -441,6 +441,12 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     public MTEEcalArray(int aID, String aName, String aNameRegional, int tier) {
         super(aID, aName, aNameRegional);
         this.tier = tier;
+        // H2 (audit): server-stop / dimension-unload refund hooks (registered once per MTE
+        // prototype instance — the handlers dispatch through the static active-controller list).
+        cpw.mods.fml.common.FMLCommonHandler.instance()
+            .bus()
+            .register(this);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
     }
 
     public MTEEcalArray(String aName, int tier) {
@@ -494,7 +500,38 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
 
     @Override
     public IMetaTileEntity newMetaEntity(IGregTechTileEntity aTileEntity) {
-        return new MTEEcalArray(this.mName, this.tier);
+        MTEEcalArray inst = new MTEEcalArray(this.mName, this.tier);
+        ACTIVE_CONTROLLERS.add(inst);
+        return inst;
+    }
+
+    // H2 (audit): world instances register here so the prototype's server-stop handler can refund
+    // in-flight jobs on every active controller. Weak refs — no leak when a machine is discarded.
+    private static final java.util.Set<MTEEcalArray> ACTIVE_CONTROLLERS = java.util.Collections
+        .newSetFromMap(new java.util.WeakHashMap<MTEEcalArray, Boolean>());
+
+    /** H2 (audit): server stopping — cancel every in-flight job (refunds materials into the grid). */
+    @cpw.mods.fml.common.eventhandler.SubscribeEvent
+    public void onServerStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
+        for (MTEEcalArray controller : new java.util.ArrayList<>(ACTIVE_CONTROLLERS)) {
+            if (controller.getBaseMetaTileEntity() != null) {
+                controller.cancelAllInFlight("server stopping");
+            }
+        }
+    }
+
+    /** H2 (audit): a dimension unloads — refund jobs whose controller lives in that world. */
+    @cpw.mods.fml.common.eventhandler.SubscribeEvent
+    public void onWorldUnload(net.minecraftforge.event.world.WorldEvent.Unload event) {
+        if (event.world == null || event.world.isRemote) {
+            return;
+        }
+        for (MTEEcalArray controller : new java.util.ArrayList<>(ACTIVE_CONTROLLERS)) {
+            if (controller.getBaseMetaTileEntity() != null && controller.getBaseMetaTileEntity()
+                .getWorld() == event.world) {
+                controller.cancelAllInFlight("dimension unload");
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -922,9 +959,10 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     /**
      * Pool bytes not yet committed to tasks: totalBytes − Σ thread-drive used storage −
      * Σ built-in slot task bytes. t116c: the built-in thread/hyper clusters live in
-     * builtinThreadClusters/builtinHyperClusters (not in any TileEcalThreadDrive), so their
-     * availableStorage (task-bytes semantics) must be counted here too — otherwise the pool
-     * never shrinks while a built-in slot runs a job.
+     * builtinThreadClusters/builtinHyperClusters (not in any TileEcalThreadDrive), so their task
+     * bytes must be counted here too — otherwise the pool never shrinks while a built-in slot
+     * runs a job. M2 (audit): only REAL task bytes (ecoaegtnh$getUsedStorage) are charged — the
+     * hyper +10% virtual reserve must not overdraw the shared pool.
      */
     public long getAvailableBytes() {
         long used = 0;
@@ -932,10 +970,12 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             used += core.getUsedStorage();
         }
         for (CraftingCPUCluster cluster : builtinThreadClusters) {
-            used += cluster.getAvailableStorage();
+            used += ECPUCluster.from(cluster)
+                .ecoaegtnh$getUsedStorage();
         }
         for (CraftingCPUCluster cluster : builtinHyperClusters) {
-            used += cluster.getAvailableStorage();
+            used += ECPUCluster.from(cluster)
+                .ecoaegtnh$getUsedStorage();
         }
         return totalBytes - used;
     }
@@ -1079,12 +1119,61 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     }
 
     /**
+     * M7 (audit): whether the cluster already occupies a thread slot (built-in lists or any
+     * thread drive). Used to de-duplicate assignment (merge / stale-cluster paths).
+     */
+    public boolean isClusterAssigned(CraftingCPUCluster cluster) {
+        if (builtinThreadClusters.contains(cluster) || builtinHyperClusters.contains(cluster)) {
+            return true;
+        }
+        for (TileEcalThreadDrive core : threadCores) {
+            if (core.getCPUs()
+                .contains(cluster)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** M7 (audit): first tick the channel was observed down (for the auto-cancel grace period). */
+    private long channelDownTick = -1;
+
+    /**
+     * M7 (audit): cancel + destroy every in-flight cluster (built-in slots and thread drives),
+     * refunding job materials into the grid; then replenish the standby vCPU. Reuses the same
+     * cancel→destroy order as disassembleAll.
+     */
+    private void cancelAllInFlight(String reason) {
+        LOG.info("Ecal: cancelling all in-flight vCPU jobs ({})", reason);
+        for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinThreadClusters)) {
+            cancelAndDestroyBuiltin(cluster);
+        }
+        for (CraftingCPUCluster cluster : new java.util.ArrayList<>(builtinHyperClusters)) {
+            cancelAndDestroyBuiltin(cluster);
+        }
+        builtinThreadClusters.clear();
+        builtinHyperClusters.clear();
+        for (TileEcalThreadDrive core : threadCores) {
+            core.onControllerDisassembled();
+        }
+        createVirtualCPU();
+    }
+
+    /**
      * Assignment hook (called by the M1 submitJob RETURN inject, 搂6.2): puts the job-loaded vCPU
      * into a free slot in the USER-ORDERED priority (t114l): 1) built-in normal thread, 2)
      * external normal thread, 3) built-in hyper thread, 4) external hyper thread (hyper slots
      * carry the +10% extra storage, free in overclock mode), then replenishes the standby vCPU.
      */
     public void onVirtualCPUSubmitJob(CraftingCPUCluster cluster, long usedBytes) {
+        // M9 (audit): if the cluster is ALREADY assigned (merge onto a running vCPU, or a stale
+        // cluster that never left the lists after storeItems failure), do not double-add it —
+        // just refresh its byte accounting and keep the existing slot.
+        if (isClusterAssigned(cluster)) {
+            ECPUCluster.from(cluster)
+                .ecoaegtnh$setAvailableStorage(usedBytes);
+            return;
+        }
         // t114i: the job makes this cluster RUNNING — take the smallest free vCPU number now
         // (the standby carried none). If no thread slot is free after all, the number goes back.
         final ECPUCluster ec = ECPUCluster.from(cluster);
@@ -1155,7 +1244,18 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             }
         }
         if (!assigned) {
-            LOG.warn("Ecal vCPU submit: no thread slot available for {} bytes; cluster stays unassigned", usedBytes);
+            // H3 (audit): no thread slot available — the job already passed the byte precheck and
+            // got a link, but an unassigned cluster drops out of the grid's CPU set on the next
+            // rebuild → job + materials freeze forever. Cancel (refund materials) + destroy now.
+            LOG.warn("Ecal vCPU submit: no thread slot available for {} bytes; cancelling the job", usedBytes);
+            try {
+                cluster.cancel();
+            } catch (Exception e) {
+                LOG.warn("Ecal: cancel on slot-exhausted cluster failed", e);
+            }
+            ECPUCluster.from(cluster)
+                .ecoaegtnh$markDestroyed();
+            cluster.destroy();
             if (!numbered) {
                 releaseVCPUId(cluster); // t114i: not running — hold no number
             }
@@ -1300,6 +1400,22 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
             .getTotalWorldTime();
         if (worldTime % 5 == 0) {
             recalculateIdlePower();
+        }
+        // M7 (audit): channel down for ≥100 ticks with in-flight jobs → the jobs neither progress
+        // (updateCraftingLogic stops being driven) nor cancel, locking materials, thread slots and
+        // vCPU numbers. Auto-cancel + destroy (refund materials) after the grace period.
+        if (worldTime % 20 == 0) {
+            boolean active = channel != null && channel.getProxy() != null
+                && channel.getProxy()
+                    .isActive();
+            if (active) {
+                channelDownTick = -1;
+            } else if (channelDownTick < 0) {
+                channelDownTick = worldTime;
+            } else if (worldTime - channelDownTick >= 100) {
+                channelDownTick = -1;
+                cancelAllInFlight("channel down");
+            }
         }
         // Phase B: replenish the standby vCPU on the structure-recheck cadence (plan 搂7.4 鈥?the
         // reference replenishes during its 40-tick structure recheck; drive changes also trigger
@@ -2066,7 +2182,16 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     private java.util.List<String> bytesLedTooltip() {
         java.util.List<String> list = new ArrayList<>();
         long used = Math.max(0, syncTotalBytes - syncAvailableBytes);
-        int pct = syncTotalBytes > 0 ? (int) (used * 100 / syncTotalBytes) : 0;
+        // M6 (audit): saturate instead of overflowing (used*100 for UNIVERSE pools goes negative).
+        long total = Math.max(0, syncTotalBytes);
+        int pct;
+        if (total == 0 || used <= 0) {
+            pct = 0;
+        } else if (used >= total || used > Long.MAX_VALUE / 100) {
+            pct = 100;
+        } else {
+            pct = (int) (used * 100 / total);
+        }
         list.add(
             EnumChatFormatting.GRAY + StatCollector.translateToLocal("ecoaegtnh.gui.ecal.led.bytes")
                 + " "

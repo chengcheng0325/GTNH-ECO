@@ -91,6 +91,13 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Shadow
     private long usedStorage;
 
+    /**
+     * M1 (audit): the per-cluster notification map registered at construction (vanilla
+     * unregisters it in destroy(), which owner/standby clusters skip).
+     */
+    @Shadow
+    private java.util.Map<String, java.util.List<appeng.me.cluster.implementations.CraftingCPUCluster.CraftNotification>> unreadNotifications;
+
     @Shadow
     private boolean isDestroyed;
 
@@ -160,7 +167,7 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
             long extra = this.ecoaegtnh$hyperAssigned && !this.ecoaegtnh$virtualCPUOwner.isOverclocked()
                 ? job.getByteTotal() / 10
                 : 0;
-            if (this.ecoaegtnh$virtualCPUOwner.getAvailableBytes() >= job.getByteTotal() + extra) {
+            if (this.ecoaegtnh$virtualCPUOwner.getAvailableBytes() >= job.getByteTotal()) {
                 ICraftingLink link = ((CraftingCPUCluster) (Object) this).mergeJob(g, job, src, requestingMachine);
                 if (link != null) {
                     // Keep the "task-bytes" availableStorage semantics so the thread-drive pool
@@ -174,10 +181,15 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
                 }
             }
         }
-        long need = job.getByteTotal() * 11 / 10; // raw bytes + 10% hyper reserve
-        if (need > getAvailableStorage()) {
+        // M2 (audit): precheck against the LIVE pool (not the standby's stale availableStorage
+        // snapshot) and charge only real bytes — the hyper +10% reserve is virtual capacity on the
+        // AE2 side and no longer overdraws the pool, so no ×1.1 surcharge here (overclock mode
+        // never had one either).
+        long need = job.getByteTotal();
+        long poolFree = this.ecoaegtnh$virtualCPUOwner.getAvailableBytes();
+        if (need > poolFree) {
             cir.setReturnValue(null);
-            ecoaegtnh$virtualCPUOwner.notifyJobRejected(src, job.getByteTotal(), getAvailableStorage());
+            ecoaegtnh$virtualCPUOwner.notifyJobRejected(src, job.getByteTotal(), poolFree);
         }
     }
 
@@ -191,6 +203,12 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
             // t116: this call was a merge into the running job — the cluster is already assigned to
             // its thread slot; do NOT re-assign (would double-add / double-count the vCPU).
             this.ecoaegtnh$mergedJob = false;
+            return;
+        }
+        // M9 (audit): belt-and-braces — if the RETURN injector ran although the cluster is already
+        // assigned (e.g. merge path where HEAD set the return value and this injector still fired,
+        // or a stale cluster), skip assignment instead of double-adding it.
+        if (this.ecoaegtnh$virtualCPUOwner.isClusterAssigned((CraftingCPUCluster) (Object) this)) {
             return;
         }
         if (cir.getReturnValue() == null) {
@@ -296,6 +314,10 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
 
     @Inject(method = "destroy", at = @At("HEAD"), cancellable = true)
     private void ecoaegtnh$injectDestroy(final CallbackInfo ci) {
+        // M1 (audit): vanilla destroy() body (which calls CraftingNotificationManager.unregister)
+        // is skipped for owner/standby clusters below — unregister here instead; List.remove is
+        // idempotent so external thread-core clusters (vanilla body still runs) are unaffected.
+        appeng.hooks.CraftingNotificationManager.unregister(this.unreadNotifications);
         // t114i: unified release hook on EVERY destroy path — returns the vCPU number to the
         // controller's smallest-available pool and frees any built-in thread slot the cluster
         // held. Idempotent (id 0 → no-op), so it is safe for the standby vCPU (never numbered),
@@ -553,6 +575,13 @@ public abstract class MixinCraftingCPUCluster implements ECPUCluster {
     @Override
     public long ecoaegtnh$getUsedExtraStorage() {
         return ecoaegtnh$usedExtraStorage;
+    }
+
+    /** M2 (audit): real task bytes for pool accounting (excludes the virtual hyper reserve). */
+    @Unique
+    @Override
+    public long ecoaegtnh$getUsedStorage() {
+        return this.usedStorage;
     }
 
     @Unique

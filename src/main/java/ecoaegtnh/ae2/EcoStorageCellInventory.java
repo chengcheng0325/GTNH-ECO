@@ -61,8 +61,19 @@ public class EcoStorageCellInventory<StackType extends IAEStack<StackType>> exte
 
     @Override
     public long getRemainingItemCount() {
-        final long remaining = this.getFreeBytes() * (getTypeWeight() * cellType.getByteMultiplier())
-            + this.getUnusedItemCount();
+        final long weight = getTypeWeight() * cellType.getByteMultiplier();
+        final long freeBytes = this.getFreeBytes();
+        // H1 (audit): freeBytes can be 2^59-1 (UNIVERSE) and weight is ~4096+ → freeBytes*weight
+        // overflows long → negative → clamped to 0 → AE2U addItems permanently rejects the cell
+        // ("always full"). Saturate the multiplication instead.
+        final long remaining;
+        if (weight <= 0) {
+            remaining = freeBytes;
+        } else if (freeBytes > (Long.MAX_VALUE - this.getUnusedItemCount()) / weight) {
+            remaining = Long.MAX_VALUE;
+        } else {
+            remaining = freeBytes * weight + this.getUnusedItemCount();
+        }
         return remaining > 0 ? remaining : 0;
     }
 

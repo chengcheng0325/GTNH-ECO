@@ -54,7 +54,9 @@ public abstract class MixinGuiCraftingCPUTable {
 
     @WrapOperation(
         method = "drawFG",
-        at = @At(value = "INVOKE", target = "Lappeng/core/localization/ScreenColor;setGuiColor()V"))
+        // H4 (audit): ScreenColor lives in appeng/client/gui, NOT appeng/core/localization — the
+        // wrong owner only matched by Mixin's imaginary fallback and would crash a strict build.
+        at = @At(value = "INVOKE", target = "Lappeng/client/gui/ScreenColor;setGuiColor()V"))
     private void ecoaegtnh$tintRow(final Operation<Void> original) {
         if (this.ecoaegtnh$currentRow instanceof ECPUStatus ec && ec.ecoaegtnh$getLevel() >= 0) {
             final float[] c = tierColor(ec.ecoaegtnh$getLevel());

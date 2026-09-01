@@ -46,6 +46,13 @@ public interface ECPUCluster {
     /** t33: whether this cluster occupies a hyper-thread slot (TileEcalThreadDrive.addCPU(hyper)). */
     boolean ecoaegtnh$isHyperAssigned();
 
+    /**
+     * M2 (audit): the cluster's REAL task bytes (AE2U usedStorage) — the pool must only be
+     * charged real bytes; the hyper +10% reserve (usedExtraStorage) is virtual capacity on the
+     * AE2 side and must NOT shrink the shared pool (otherwise many hyper jobs overdraw it).
+     */
+    long ecoaegtnh$getUsedStorage();
+
     /** t33: marks the cluster's slot kind (set on hyper assignment, cleared on destroy). */
     void ecoaegtnh$setHyperAssigned(boolean hyperAssigned);
 

@@ -81,11 +81,16 @@ public class TileEcalThreadDrive extends TileEcalPart implements IInventory {
         return true;
     }
 
-    /** Sum of assigned clusters' task storage (plan §7.4 — {@code getAvailableBytes} basis). */
+    /**
+     * Sum of assigned clusters' REAL task bytes (plan §7.4 — {@code getAvailableBytes} basis).
+     * M2 (audit): uses ecoaegtnh$getUsedStorage() (AE2U usedStorage) instead of availableStorage,
+     * so the virtual hyper +10% reserve does not overdraw the shared pool.
+     */
     public long getUsedStorage() {
         long used = 0;
         for (CraftingCPUCluster cpu : cpus) {
-            used += cpu.getAvailableStorage();
+            used += ecoaegtnh.ecalculator.ECPUCluster.from(cpu)
+                .ecoaegtnh$getUsedStorage();
         }
         return used;
     }

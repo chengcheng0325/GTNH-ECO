@@ -11,14 +11,12 @@
     "MixinGridStorageCache",
     "MixinContainerNetworkStatus",
     "MixinCraftingCPUStatus",
-    "MixinContainerCraftConfirm"
+    "MixinContainerCraftConfirm",
+    "MixinCraftingCPUCluster",
+    "MixinCraftingGridCache"
   ],
   "client": [
     "MixinGuiNetworkStatus",
     "MixinGuiCraftingCPUTable"
-  ],
-  "server": [
-    "MixinCraftingCPUCluster",
-    "MixinCraftingGridCache"
   ]
 }

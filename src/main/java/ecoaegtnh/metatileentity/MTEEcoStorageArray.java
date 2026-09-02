@@ -1586,6 +1586,11 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     // M3 (audit): GUI stat cache — the 12 FakeSyncWidget suppliers call these up to 20 Hz while a
     // GUI is open; each sumStat rebuilds every cell inventory (full NBT deserialization). Recompute
     // once per 20 ticks and let the suppliers read the cache.
+    // t127b (root cause, 290b2 sync of t127): the Long.MIN_VALUE sentinel made
+    // refreshStatCacheIfStale's first check `t - lastStatRefreshTick < 20` overflow to a negative
+    // value, so the cache NEVER refreshed — the IO-LED tooltip types/bytes rows stayed "0/0 (0%)"
+    // forever no matter which cells were inserted. The guard below is now overflow-safe (see
+    // refreshStatCacheIfStale).
     private long statItemStoredTypes, statItemTotalTypes, statItemUsedBytes, statItemTotalBytes;
     private long statFluidStoredTypes, statFluidTotalTypes, statFluidUsedBytes, statFluidTotalBytes;
     private long statEssentiaStoredTypes, statEssentiaTotalTypes, statEssentiaUsedBytes, statEssentiaTotalBytes;
@@ -1613,7 +1618,14 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         }
         long t = getBaseMetaTileEntity().getWorld()
             .getTotalWorldTime();
-        if (t - lastStatRefreshTick < 20) {
+        // t127b: overflow-safe staleness check (same fix as 290b1 t127). With
+        // lastStatRefreshTick == Long.MIN_VALUE (the initial sentinel), `t - lastStatRefreshTick`
+        // wraps around to a negative long for any non-negative world time t, so the old
+        // `if (t - lastStatRefreshTick < 20) return;` was always true and the cache never
+        // recomputed. Only compare elapsed time once a real tick has been recorded: the sentinel
+        // forces the first call to refresh immediately, then the cache refreshes every >= 20 world
+        // ticks as intended.
+        if (lastStatRefreshTick != Long.MIN_VALUE && t - lastStatRefreshTick < 20) {
             return;
         }
         lastStatRefreshTick = t;

@@ -9,8 +9,15 @@ Applied Energistics 2 (Unofficial) integration.
 | Mod ID | `ecoaegtnh` |
 | Dependencies | GregTech 5-Unofficial (`gregtech`), Applied Energistics 2 Unofficial (`appliedenergistics2`), StructureLib (`structurelib`) |
 | Branch `master` | GTNH **2.9.0-beta-2** (AE2U rv3-beta-1000 / GT5U 5.09.54.20) |
+| Branch `290b1` | GTNH **2.9.0-beta-1** (AE2U rv3-beta-977 / GT5U 5.09.52.594) |
 | Branch `284` | GTNH **2.8.4** (AE2U rv3-beta-695 / GT5U 5.09.51.482) |
 | Language | English / 简体中文（[README.md](README.md)） |
+
+> ⚠️ **Branch selection**: the three branches target three different GTNH pack versions and are
+> not interchangeable (different AE2U/GT5U versions; some recipe materials and fluid registry IDs
+> differ). Pick the branch matching your pack. The `290b1` branch is a beta-1-specific build:
+> that pack's bartworks has no Superdense-plate material and different fluid registry IDs, so the
+> recipes are adapted for the beta-1 environment.
 
 ---
 

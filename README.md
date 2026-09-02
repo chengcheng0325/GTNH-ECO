@@ -9,8 +9,14 @@ Energistics 2 (Unofficial) 深度集成的形式带入 GTNH。
 | Mod ID | `ecoaegtnh` |
 | 依赖 | GregTech 5-Unofficial (`gregtech`)、Applied Energistics 2 Unofficial (`appliedenergistics2`)、StructureLib (`structurelib`) |
 | 分支 `master` | GTNH **2.9.0-beta-2**（AE2U rv3-beta-1000 / GT5U 5.09.54.20） |
+| 分支 `290b1` | GTNH **2.9.0-beta-1**（AE2U rv3-beta-977 / GT5U 5.09.52.594） |
 | 分支 `284` | GTNH **2.8.4**（AE2U rv3-beta-695 / GT5U 5.09.51.482） |
 | 语言 | 简体中文 / English（[README_EN.md](README_EN.md)） |
+
+> ⚠️ **分支选择**：三个分支对应三个 GTNH 整合包版本，互不通用（AE2U/GT5U 版本不同，
+> 部分配方材料与流体注册 ID 也不同）——请按您使用的整合包选择对应分支的 jar。
+> `290b1` 分支为 2.9.0-beta-1 专用构建：该版 bartworks 无超密板材料、流体注册 ID 与
+> beta-2 不同，配方已按 beta-1 环境适配。
 
 ---
 

@@ -1677,42 +1677,34 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        // t53: single unified host 鈥?the machine-type line carries no tier marker anymore
+        // t53: single unified host — the machine-type line carries no tier marker anymore
         // (the upgrade tree provides the progression).
+        // t123 (290b1 compat): the (String,String,boolean) addCasing / addStructureFooter overloads
+        // only exist on GT 5.09.54.20+ (NoSuchMethodError on 5.09.52.594) — build the same lines
+        // with addInfo (present on both versions) instead.
         tt.addMachineType(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.machinetype"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.info.compute"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.info.power"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.info.no_maintenance"))
             .beginVariableStructureBlock(4, MAX_SEGMENTS + 3, 3, 3, 2, 2, false)
             .addController(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.controller"))
-            .addCasing(
-                "2+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_casing.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_cell_drive.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_parallel_drive.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_thread_drive.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_transmitter_bus.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.ecalculator_me_channel.name"),
-                false)
-            .addStructureFooter(
-                net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.footer.placement"))
+            .addInfo(casingLine("2+", "tile.ecoaegtnh.ecalculator_casing.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.ecalculator_cell_drive.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.ecalculator_parallel_drive.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.ecalculator_thread_drive.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.ecalculator_transmitter_bus.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.ecalculator_me_channel.name"))
+            .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.ecal.footer.placement"))
             .toolTipFinisher();
         return tt;
+    }
+
+    /** t123: "amount <name>" structure line, styled like the newer GT addCasing overload. */
+    private static String casingLine(String amount, String nameKey) {
+        return net.minecraft.util.EnumChatFormatting.GOLD + amount
+            + " "
+            + net.minecraft.util.EnumChatFormatting.WHITE
+            + net.minecraft.util.StatCollector.translateToLocal(nameKey);
     }
 
     // ------------------------------------------------------------------

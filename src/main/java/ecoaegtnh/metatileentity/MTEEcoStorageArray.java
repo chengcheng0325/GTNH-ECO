@@ -64,6 +64,11 @@ import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
  * ECO E-Storage Array controller (GT multiblock); capacity bands k / M / big-M
  * (t122 naming: the L4/L6/L9 controller tiers are gone).
  * <p>
+ * t123 (290b1 compatibility): createTooltip uses only MultiblockTooltipBuilder API present on
+ * both GT 5.09.52.594 (290b1) and 5.09.54.20 (290b2) — the (String,String,boolean) addCasing
+ * and addStructureFooter overloads are 54.20-only and crashed the 290b1 client with
+ * NoSuchMethodError during GT's machine-tooltip generation pass.
+ * <p>
  * Structure per DESIGN.md §1.7/§2.5 (t30 layout, user-confirmed): the controller anchor is the
  * head's front slice; the 1..12 drive columns extend to the RIGHT of the controller (the facing's
  * right-hand side, perpendicular to the front) — one 2-deep x 3-tall column per rightward step —
@@ -859,35 +864,31 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     protected MultiblockTooltipBuilder createTooltip() {
         MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         // t51: single unified array — the machine-type line no longer shows a tier suffix.
+        // t123 (290b1 compat): the (String,String,boolean) addCasing / addStructureFooter overloads
+        // only exist on GT 5.09.54.20+ (NoSuchMethodError on 5.09.52.594) — build the same lines
+        // with addInfo (present on both versions) instead.
         tt.addMachineType(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.machinetype"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.mass_storage"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.power"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.no_maintenance"))
             .beginVariableStructureBlock(4, MAX_DRIVE_COLUMNS + 3, 3, 3, 2, 2, false)
             .addController(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.controller"))
-            .addCasing(
-                "2+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_casing.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_drive.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_capacitance.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_vent.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_me_bus.name"),
-                false)
-            .addStructureFooter(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
+            .addInfo(casingLine("2+", "tile.ecoaegtnh.storage_array_casing.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.storage_array_drive.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.storage_array_capacitance.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.storage_array_vent.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.storage_array_me_bus.name"))
+            .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
             .toolTipFinisher();
         return tt;
+    }
+
+    /** t123: "amount <name>" structure line, styled like the newer GT addCasing overload. */
+    private static String casingLine(String amount, String nameKey) {
+        return net.minecraft.util.EnumChatFormatting.GOLD + amount
+            + " "
+            + net.minecraft.util.EnumChatFormatting.WHITE
+            + net.minecraft.util.StatCollector.translateToLocal(nameKey);
     }
 
     // ------------------------------------------------------------------

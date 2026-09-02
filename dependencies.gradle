@@ -1,20 +1,22 @@
 dependencies {
-    // Server-pinned versions (GTNH 2.9.0-beta-2): GT5U 5.09.54.20, AE2U rv3-beta-1000-GTNH, StructureLib 1.4.42.
-    // 5.09.54.20's MTE ID array has 32766 slots (5.09.54.111's is larger); MTE IDs must stay in [0, 32766).
-    api('com.github.GTNewHorizons:GT5-Unofficial:5.09.54.20:dev')
-    api('com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-1000-GTNH:dev')
+    // Server-pinned versions (GTNH 2.9.0-beta-1): GT5U 5.09.52.594, AE2U rv3-beta-977-GTNH,
+    // StructureLib 1.4.38, NEI 2.8.101-GTNH, TE 1.7.53-GTNH (b1 pack versions).
+    // NOTE: b1's bartworks (inside GT5U 5.09.52.594) has NO Superdense-plate werkstoff — the
+    // fluid-UNIVERSE component recipe (Recipes) cannot use gt.bwMetaGeneratedplateSuperdense there.
+    api('com.github.GTNewHorizons:GT5-Unofficial:5.09.52.594:dev')
+    api('com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-977-GTNH:dev')
     // Structure check (explicit; transitive dep of GT5-Unofficial, see docs/DESIGN.md §2.4)
-    api('com.github.GTNewHorizons:StructureLib:1.4.42:dev')
+    api('com.github.GTNewHorizons:StructureLib:1.4.38:dev')
     // t72: material-window requirement slots open NEI recipe/usage (godforge SlotLikeButtonWidget
     // parity) — dev-only; NEI stays out of the runtime jar (client-only calls guarded by isClient).
-    api('com.github.GTNewHorizons:NotEnoughItems:2.8.111-GTNH:dev')
+    api('com.github.GTNewHorizons:NotEnoughItems:2.8.101-GTNH:dev')
 
     // Essentia cells (t11): ThaumicEnergistics provides the AEEssentiaStackType. transitive=false —
     // otherwise it pulls thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev which is NOT resolvable from any
     // configured repository (see docs/ESSENTIA_CELL_RESEARCH.md §5.2). We only reference TE4's
     // common storage classes + Thaumcraft's ConfigItems (item field, name-stable), both present in
     // the pack's runtime jars.
-    implementation('com.github.GTNewHorizons:ThaumicEnergistics:1.7.60-GTNH:dev') { transitive = false }
+    implementation('com.github.GTNewHorizons:ThaumicEnergistics:1.7.53-GTNH:dev') { transitive = false }
 
     // Thaumcraft 4.2.3.5 runtime jar (from the pack, copied to libs/): compileOnly for
     // thaumcraft.common.config.ConfigItems + thaumcraft.api classes (unobfuscated names).

@@ -48,20 +48,18 @@ public class ItemEcalParallelCore extends Item {
     }
 
     /**
-     * t65 (upgrade tree, docs §2 revision): the parallel-branch node required to insert this
-     * core — 1 → P1, 4 → P2, 16 → P3, 64 → P4, 256 → P5, 1024 → P6, 4096 → P7, 16384 → P8,
-     * 65536 → P9.
+     * t65→t128b (upgrade tree, docs §2 revision): the parallel-branch node required to insert
+     * this core — one node per MERGED GROUP of three parallelism tiers: ≤16 (1/4/16) → P1,
+     * ≤1024 (64/256/1024) → P2, ≤65536 (4096/16384/65536) → P3.
      */
     public String getRequiredUpgradeNode() {
-        if (parallelism <= 1) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P1;
-        if (parallelism <= 4) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P2;
-        if (parallelism <= 16) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P3;
-        if (parallelism <= 64) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P4;
-        if (parallelism <= 256) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P5;
-        if (parallelism <= 1024) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P6;
-        if (parallelism <= 4096) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P7;
-        if (parallelism <= 16384) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P8;
-        return ecoaegtnh.upgrade.CalculatorUpgradeTree.P9;
+        if (parallelism <= 16) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.P1;
+        }
+        if (parallelism <= 1024) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.P2;
+        }
+        return ecoaegtnh.upgrade.CalculatorUpgradeTree.P3;
     }
 
     @Override

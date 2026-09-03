@@ -376,19 +376,19 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     private double syncIdlePowerUsage = 0;
 
     /**
-     * t65: byte-pool cap by the activated cell main-chain node (docs §2 revision) — N2 (256k) =
-     * 12M pool, N3 (1024k) = 64M, N4 (4096k) = 256M, N5 (16M) = 1G, N6 (64M) = 4G, N7 (256M) =
-     * 16G, N8 (1024M) = 64G, N9 (4096M) = 256G, N10 (16384M) = unlimited (Long.MAX_VALUE).
+     * t65→t128b: byte-pool cap by the activated cell main-chain node (docs §2 revision) — one cap
+     * per MERGED GROUP, taking the highest member cap of the old per-size ladder: N1 (free head;
+     * 机器基础 + 256k/1024k) = 64M, N2 (4096k/16M/64M) = 4G, N3 (256M/1024M/4096M) = 256G,
+     * N4 (16384M) / N5 (奇点) = unlimited (Long.MAX_VALUE).
      */
-    private static final long[] BYTE_POOL_CAP = { 12_000_000L, 64_000_000L, 256_000_000L, 1_000_000_000L,
-        4_000_000_000L, 16_000_000_000L, 64_000_000_000L, 256_000_000_000L, Long.MAX_VALUE };
+    private static final long[] BYTE_POOL_CAP = { 64_000_000L, 4_000_000_000L, 256_000_000_000L };
 
     /**
-     * t65: the upgrade tree (docs/ECO_UPGRADE_TREE_DESIGN.md) — 26 nodes (single cell main chain
-     * N1-N10 + thread/parallel branches + hyper branch + overclock OC), activation state
-     * persisted in NBT ("upgradeTree" key). Drives gate insertions by node activation; OC drives
-     * the overclock mode (red line 5% + free hyper threads) and the byte-pool cap follows the
-     * cell main chain.
+     * t65→t128b: the upgrade tree (docs/ECO_UPGRADE_TREE_DESIGN.md) — 17 nodes (single cell main
+     * chain N1-N5 + thread T1-T3 / parallel P1-P3 / hyper H1-H3 branches + built-in B1/B2 +
+     * overclock OC; T4/T5 removed in t128b), activation state persisted in NBT ("upgradeTree"
+     * key). Drives gate insertions by node activation; OC drives the overclock mode (red line 5%
+     * + free hyper threads) and the byte-pool cap follows the cell main chain.
      */
     protected final ecoaegtnh.upgrade.UpgradeTree upgradeTree = ecoaegtnh.upgrade.CalculatorUpgradeTree.newInstance();
 
@@ -2482,22 +2482,17 @@ public class MTEEcalArray extends TTMultiblockBase implements ISurvivalConstruct
     }
 
     /**
-     * t65/t114: byte-pool cap by the activated cell main-chain node — N11 (Singularity) and N10
-     * lift the cap to unlimited; N2 (256k) = 12M, N3 (1024k) = 64M, N4 (4096k) = 256M,
-     * N5 (16M) = 1G, N6 (64M) = 4G, N7 (256M) = 16G, N8 (1024M) = 64G, N9 (4096M) = 256G.
+     * t65/t128b: byte-pool cap by the activated cell main-chain node — one node per MERGED GROUP
+     * of three tiers, cap = the highest member cap of the group: N1 (free head: 机器基础 +
+     * 256k/1024k) = 64M, N2 (4096k/16M/64M) = 4G, N3 (256M/1024M/4096M) = 256G; N4 (16384M) and
+     * N5 (Singularity/奇点) lift the cap to unlimited.
      */
     public long getBytePoolCap() {
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N11)
-            || upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N10)) return Long.MAX_VALUE;
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N9)) return BYTE_POOL_CAP[7];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N8)) return BYTE_POOL_CAP[6];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N7)) return BYTE_POOL_CAP[5];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N6)) return BYTE_POOL_CAP[4];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N5)) return BYTE_POOL_CAP[3];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N4)) return BYTE_POOL_CAP[2];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N3)) return BYTE_POOL_CAP[1];
-        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N2)) return BYTE_POOL_CAP[0];
-        return BYTE_POOL_CAP[0]; // N1 (free) → 12M
+        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N5)
+            || upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N4)) return Long.MAX_VALUE;
+        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N3)) return BYTE_POOL_CAP[2];
+        if (upgradeTree.isActivated(ecoaegtnh.upgrade.CalculatorUpgradeTree.N2)) return BYTE_POOL_CAP[1];
+        return BYTE_POOL_CAP[0]; // N1 (free head node, auto-activated) → 64M
     }
 
     /** t50: red-line threshold 鈥?10% of the effective pool (5% in overclock mode). */

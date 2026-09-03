@@ -122,7 +122,8 @@ public class TileEcalCellDrive extends TileEcalPart implements IInventory {
 
     /**
      * Bytes this drive supplies to the byte pool: the installed cell's capacity when its
-     * upgrade-tree node (N1..N4) is activated, else 0 (t60; replaces the milestone check).
+     * upgrade-tree node (t128b: merged group node N1..N5) is activated, else 0 (t60; replaces the
+     * milestone check).
      */
     public long getSuppliedBytes() {
         if (cellStack == null || controller == null

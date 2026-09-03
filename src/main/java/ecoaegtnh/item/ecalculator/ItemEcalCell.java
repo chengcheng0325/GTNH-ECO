@@ -17,6 +17,9 @@ import ecoaegtnh.EcoAEGTNHCore;
  * 1024M/4096M/16384M → C9 hosts only. Capacity follows the storage-disk formula (k-level
  * value×1024, M/big-M value×1000×1024; see {@link CellSize}).
  * <p>
+ * t128b: the upgrade-tree gate maps the cell onto the merged main-chain node N1..N5 (see
+ * {@link #getRequiredUpgradeNode()}).
+ * <p>
  * Display name is size-style ("ECO 闪存晶阵 (256k)"), registry {@code ecalculator_cell_<label>}.
  * The old 3-tier {@code ecalculator_cell_c4/c6/c9} registrations were removed by t28 —
  * 64M→64m, 1024M→1024m, 16384M→16384m take over (recipe references synced by T29).
@@ -67,25 +70,28 @@ public class ItemEcalCell extends Item {
     }
 
     /**
-     * t65/t114 (upgrade tree, docs §2 revision): the cell main-chain node required to insert this
-     * cell — 256k → N2 … 16384M → N10, Singularity (奇点闪存晶阵) → N11 (Long.MAX_VALUE bytes,
-     * byte-pool cap lifted to unlimited).
+     * t65/t114→t128b (upgrade tree, docs §2 revision): the cell main-chain node required to insert
+     * this cell — one node per MERGED GROUP of three tiers: 256k/1024k → N1 (free base group),
+     * 4096k/16M/64M → N2, 256M/1024M/4096M → N3, 16384M → N4, Singularity (奇点闪存晶阵) → N5
+     * (Long.MAX_VALUE bytes, byte-pool cap lifted to unlimited). Activating the group node allows
+     * every cell of that group.
      */
     public String getRequiredUpgradeNode() {
         if (size == CellSize.SINGULARITY) {
-            return ecoaegtnh.upgrade.CalculatorUpgradeTree.N11;
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.N5;
         }
         if (size.kilo) {
-            if (size.value == 4096) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N4;
-            if (size.value == 1024) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N3;
-            return ecoaegtnh.upgrade.CalculatorUpgradeTree.N2; // 256k
+            // k-level: 256k/1024k → N1 (head group), 4096k → N2 (its merged group is 4096k/16M/64M).
+            return size.value == 4096 ? ecoaegtnh.upgrade.CalculatorUpgradeTree.N2
+                : ecoaegtnh.upgrade.CalculatorUpgradeTree.N1;
         }
-        if (size.value == 16384) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N10;
-        if (size.value == 4096) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N9;
-        if (size.value == 1024) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N8;
-        if (size.value == 256) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N7;
-        if (size.value == 64) return ecoaegtnh.upgrade.CalculatorUpgradeTree.N6;
-        return ecoaegtnh.upgrade.CalculatorUpgradeTree.N5; // 16m
+        if (size.value == 16384) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.N4; // 16384m tail
+        }
+        if (size.value <= 64) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.N2; // 16m / 64m
+        }
+        return ecoaegtnh.upgrade.CalculatorUpgradeTree.N3; // 256m / 1024m / 4096m
     }
 
     /** Size label ("256k", "16m", "16384m", ...). */

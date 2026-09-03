@@ -1,67 +1,46 @@
 package ecoaegtnh.upgrade;
 
-import java.util.Map;
-
 import net.minecraft.item.ItemStack;
 
-import ecoaegtnh.item.estorage.CellSize;
-import ecoaegtnh.item.estorage.StorageType;
-
 /**
- * t112/t114: the storage array's 32-node upgrade tree — ONE NODE PER CELL
- * (docs/ECO_UPGRADE_TREE_DESIGN.md §3), three independent chains (one per storage family):
+ * t112/t114→t128b: the storage array's upgrade tree — ONE MERGED NODE PER CAPACITY GROUP
+ * (docs/ECO_UPGRADE_TREE_DESIGN.md §3 + user t128b decision: 3-in-1), three independent chains
+ * (one per storage family):
  * 
  * <pre>
- *   item chain:     I1 256k★ → I2 1024k → … → I9 16384M → I10 人造宇宙
- *   fluid chain:    F1 256k★ → F2 1024k → … → F9 16384M → F10 人造宇宙 → F11 无限水
- *   essentia chain: E1 256k★ → E2 1024k → … → E9 16384M → E10 人造宇宙 → E11 魔导源质
+ *   item chain:     I1 k级★ → I2 M级 → I3 大M级 → I4 人造宇宙
+ *   fluid chain:    F1 k级★ → F2 M级 → F3 大M级 → F4 人造宇宙 → F5 无限水
+ *   essentia chain: E1 k级★ → E2 M级 → E3 大M级 → E4 人造宇宙 → E5 魔导源质
  * </pre>
  * 
- * Each node unlocks EXACTLY ONE cell item (the cell's {@link
- * ecoaegtnh.item.estorage.ItemEcoStorageCell#getRequiredUpgradeNode()} is prefix + size index).
- * t114: the family-exclusive sizes (INF_WATER → fluid chain only, ARCANE → essentia chain only)
- * are gated through {@link CellSize#allowed(StorageType)} — the item chain has 10 nodes, the
- * fluid/essentia chains 11 each. Chains are independent (no cross-chain prerequisites); the
- * essentia chain needs TE4 loaded (its lang/effect keys only resolve when Thaumcraft is present —
- * the tree itself is load-safe). ★ = free base nodes (activated on construction).
+ * Each merged node unlocks a WHOLE GROUP of three cell tiers at once (t128b: old nodes 1-3 → new
+ * node 1, old 4-6 → new node 2, old 7-9 → new node 3; the family tails 人造宇宙 / 无限水 / 魔导源质
+ * keep their own nodes and are renumbered last). The cell's {@link
+ * ecoaegtnh.item.estorage.ItemEcoStorageCell#getRequiredUpgradeNode()} is prefix + the size's
+ * group number (256k..4096k → 1, 16M..256M → 2, 1024M..16384M → 3, 人造宇宙 → 4, 无限水 → F5,
+ * 魔导源质 → E5). Chains are independent (no cross-chain prerequisites); the essentia chain needs
+ * TE4 loaded (its lang/effect keys only resolve when Thaumcraft is present — the tree itself is
+ * load-safe). ★ = free base nodes (activated on construction).
  */
 public final class StorageUpgradeTree extends UpgradeTree {
 
-    // Item chain (one node per cell size, 256k .. universe).
+    // Item chain (k级 → M级 → 大M级 → 人造宇宙).
     public static final String I1 = "I1";
     public static final String I2 = "I2";
     public static final String I3 = "I3";
     public static final String I4 = "I4";
-    public static final String I5 = "I5";
-    public static final String I6 = "I6";
-    public static final String I7 = "I7";
-    public static final String I8 = "I8";
-    public static final String I9 = "I9";
-    public static final String I10 = "I10";
-    // Fluid chain (t114: F11 = infinite water).
+    // Fluid chain (t128b: F5 = 无限水 tail).
     public static final String F1 = "F1";
     public static final String F2 = "F2";
     public static final String F3 = "F3";
     public static final String F4 = "F4";
     public static final String F5 = "F5";
-    public static final String F6 = "F6";
-    public static final String F7 = "F7";
-    public static final String F8 = "F8";
-    public static final String F9 = "F9";
-    public static final String F10 = "F10";
-    public static final String F11 = "F11";
-    // Essentia chain (t114: E11 = arcane).
+    // Essentia chain (t128b: E5 = 魔导源质 tail).
     public static final String E1 = "E1";
     public static final String E2 = "E2";
     public static final String E3 = "E3";
     public static final String E4 = "E4";
     public static final String E5 = "E5";
-    public static final String E6 = "E6";
-    public static final String E7 = "E7";
-    public static final String E8 = "E8";
-    public static final String E9 = "E9";
-    public static final String E10 = "E10";
-    public static final String E11 = "E11";
 
     /**
      * t79: static read-only node definitions. Activation/paid state lives on EACH machine's own
@@ -85,81 +64,39 @@ public final class StorageUpgradeTree extends UpgradeTree {
 
     private StorageUpgradeTree() {
         String k = "ecoaegtnh.upgrade.node.";
-        // GT ingot ladder (cost key sources) + AE line materials (docs §4 混合线).
+        // t128b (TEST ONLY, carried over from t113c): every non-free node costs ONE IRON INGOT so
+        // the whole tree can be walked quickly in a test world — here one iron per MERGED GROUP
+        // (one node unlocks three cell tiers). The user will replace the ladder with real
+        // materials later.
         ItemStack iron = UpgradeCosts.gtIngot(gregtech.api.enums.Materials.Iron);
-        ItemStack alu = UpgradeCosts.gtIngot(gregtech.api.enums.Materials.Aluminium);
-        ItemStack ti = UpgradeCosts.gtIngot(gregtech.api.enums.Materials.Titanium);
-        ItemStack ir = UpgradeCosts.gtIngot(gregtech.api.enums.Materials.Iridium);
-        ItemStack neutronium = UpgradeCosts.gtIngot(gregtech.api.enums.Materials.Neutronium);
-        appeng.api.definitions.IMaterials m = appeng.api.AEApi.instance()
-            .definitions()
-            .materials();
-        ItemStack proc = UpgradeCosts.ae(m.calcProcessor()); // 处理器
-        ItemStack logic = UpgradeCosts.ae(m.logicProcessor()); // 逻辑处理器
-        ItemStack board = gregtech.api.enums.ItemList.Circuit_Board_Basic.get(1); // 电路板 (AE 线点缀)
-
-        // t113c (TEST ONLY): every non-free node costs ONE IRON INGOT so the whole tree can be
-        // walked quickly in a test world; the user will replace the ladder with real materials
-        // later (the original depth ladder is below, commented out).
-        java.util.List<Map<String, Integer>> ladder = java.util.Arrays.asList(
-            null, // I1/F1/E1 256k — free
-            cost(iron, 1), // I2/F2/E2 1024k
-            cost(iron, 1), // I3/F3/E3 4096k
-            cost(iron, 1), // I4/F4/E4 16M
-            cost(iron, 1), // I5/F5/E5 64M
-            cost(iron, 1), // I6/F6/E6 256M
-            cost(iron, 1), // I7/F7/E7 1024M
-            cost(iron, 1), // I8/F8/E8 4096M
-            cost(iron, 1), // I9/F9/E9 16384M
-            cost(iron, 1), // I10/F10/E10 人造宇宙
-            cost(iron, 1), // F11 无限水 (t114)
-            cost(iron, 1)); // E11 魔导源质 (t114)
-        // Original ladder (t112/t113 — iron → aluminium → titanium → iridium → neutronium + AE
-        // line, 装机后调):
-        // cost(iron, 16, alu, 8, proc, 4) // I2 1024k
-        // cost(alu, 24, ti, 8, proc, 6) // I3 4096k
-        // cost(alu, 32, ti, 16, board, 8) // I4 16M
-        // cost(ti, 32, ir, 8, board, 10) // I5 64M
-        // cost(ti, 48, ir, 12, logic, 4) // I6 256M
-        // cost(ti, 64, ir, 16, logic, 8) // I7 1024M
-        // cost(ir, 24, neutronium, 4, logic, 12) // I8 4096M
-        // cost(ir, 32, neutronium, 8, logic, 16) // I9 16384M
-        // cost(ir, 48, neutronium, 16, logic, 24) // I10 人造宇宙
-
-        CellSize[] sizes = CellSize.values(); // ascending: 256k .. universe .. infwater .. arcane
-        for (StorageType type : StorageType.values()) {
-            String prefix = type == StorageType.FLUID ? "F" : type == StorageType.ESSENTIA ? "E" : "I";
-            // t114d: node number = position WITHIN the family chain, not the enum ordinal — the
-            // essentia chain numbers E1..E11 (ARCANE is the 11th size), so the node ids always
-            // match ItemEcoStorageCell#getRequiredUpgradeNode (E11, not E12).
-            int chain = 0;
-            for (int i = 0; i < sizes.length; i++) {
-                // t114: family-exclusive sizes only build their own chain's node (INF_WATER → F11,
-                // ARCANE → E11).
-                if (!sizes[i].allowed(type)) continue;
-                chain++;
-                String id = prefix + chain;
-                // t113b: free base nodes use the 4-arg constructor — passing null through the
-                // varargs would create a prerequisites array CONTAINING null (new String[]{null}),
-                // which made stateColor() NPE on pack.contains(null) (client crash 2026-08-31).
-                if (chain == 1) {
-                    addNode(new UpgradeNode(id, k + id + ".name", k + id + ".effect", true));
-                } else {
-                    addNode(
-                        new UpgradeNode(
-                            id,
-                            k + id + ".name",
-                            k + id + ".effect",
-                            false,
-                            ladder.get(i),
-                            prefix + (chain - 1)));
-                }
-            }
-        }
+        addChain(iron, k, "I", 4);
+        addChain(iron, k, "F", 5);
+        addChain(iron, k, "E", 5);
     }
 
-    /** Cost map from alternating (ItemStack, Integer) pairs (t63; see {@link UpgradeCosts}). */
-    private static Map<String, Integer> cost(Object... pairs) {
-        return UpgradeCosts.of(pairs);
+    /**
+     * t128b: one independent chain of merged group nodes — the head node is free (auto-activated
+     * on construction, ★), every other node costs one iron and depends on the previous node
+     * (sequential chain). Node ids are prefix + 1..count (I1..I4 / F1..F5 / E1..E5).
+     */
+    private void addChain(ItemStack iron, String k, String prefix, int count) {
+        for (int i = 1; i <= count; i++) {
+            String id = prefix + i;
+            // t113b: free base nodes use the 4-arg constructor — passing null through the
+            // varargs would create a prerequisites array CONTAINING null (new String[]{null}),
+            // which made stateColor() NPE on pack.contains(null) (client crash 2026-08-31).
+            if (i == 1) {
+                addNode(new UpgradeNode(id, k + id + ".name", k + id + ".effect", true));
+            } else {
+                addNode(
+                    new UpgradeNode(
+                        id,
+                        k + id + ".name",
+                        k + id + ".effect",
+                        false,
+                        UpgradeCosts.of(iron, 1),
+                        prefix + (i - 1)));
+            }
+        }
     }
 }

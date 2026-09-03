@@ -58,9 +58,10 @@ public class ItemEcalThreadCore extends Item {
     }
 
     /**
-     * t60/t114f (upgrade tree, docs §2): the thread-chain / hyper node required to insert this
-     * core — normal 1 → T1, 4 → T2, 16 → T3, 32 → T4, 64 → T5; hyper by hyperThreads:
-     * 4 → H2, 8+ → H3 (t114s: hyper_2 supplies 0+4 → H2, hyper_4 4+8 → H3, hyper_8 8+16 → H3).
+     * t60/t114f→t128 (upgrade tree, docs §2): the thread-chain / hyper node required to insert
+     * this core — normal 1 → T1, 4 → T2, ≥16 → T3 (t128: the 32/64-thread cores are gone, so any
+     * legacy 32/64-thread stack is truncated onto T3); hyper by hyperThreads: 4 → H2, 8+ → H3
+     * (t114s: hyper_2 supplies 0+4 → H2, hyper_4 4+8 → H3, hyper_8 8+16 → H3).
      */
     public String getRequiredUpgradeNode() {
         if (hyperThreads > 0) {
@@ -68,10 +69,12 @@ public class ItemEcalThreadCore extends Item {
                 : hyperThreads >= 4 ? ecoaegtnh.upgrade.CalculatorUpgradeTree.H2
                     : ecoaegtnh.upgrade.CalculatorUpgradeTree.H1;
         }
-        if (threads >= 64) return ecoaegtnh.upgrade.CalculatorUpgradeTree.T5;
-        if (threads >= 32) return ecoaegtnh.upgrade.CalculatorUpgradeTree.T4;
-        if (threads >= 16) return ecoaegtnh.upgrade.CalculatorUpgradeTree.T3;
-        if (threads >= 4) return ecoaegtnh.upgrade.CalculatorUpgradeTree.T2;
+        if (threads >= 16) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.T3;
+        }
+        if (threads >= 4) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.T2;
+        }
         return ecoaegtnh.upgrade.CalculatorUpgradeTree.T1;
     }
 

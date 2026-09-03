@@ -183,8 +183,9 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     }
 
     /**
-     * t112 (upgrade-tree gate): node id required by the cell on its storage line — ONE NODE PER
-     * CELL SIZE (256k → I1/F1/E1 … 16384m → I9/F9/E9, 人造宇宙 → I10/F10/E10, see
+     * t112→t128 (upgrade-tree gate): node id required by the cell on its storage line — ONE NODE
+     * PER MERGED CAPACITY GROUP of three cell sizes (256k..4096k → I1/F1/E1, 16M..256M →
+     * I2/F2/E2, 1024M..16384M → I3/F3/E3, 人造宇宙 → I4/F4/E4, 无限水 → F5, 魔导源质 → E5, see
      * {@link ecoaegtnh.item.estorage.ItemEcoStorageCell#getRequiredUpgradeNode()}). Returns null
      * for non-ECO items. Static so the multiblock formation check can gate cells without any
      * controller reference.
@@ -198,9 +199,9 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
 
     /**
      * t62: static upgrade-tree gate — true when the ECO cell is allowed on the given controller
-     * (its storage-tree node is activated; item/fluid/essentia chains are selected by the cell's
-     * family). No controller field is consulted, so it is safe to call during the multiblock
-     * formation check (when the bay's controller reference may not be set up yet).
+     * (its storage-tree group node is activated; item/fluid/essentia chains are selected by the
+     * cell's family). No controller field is consulted, so it is safe to call during the
+     * multiblock formation check (when the bay's controller reference may not be set up yet).
      */
     public static boolean isSupportedByUpgradeNode(ItemStack stack,
         ecoaegtnh.metatileentity.MTEEcoStorageArray controller) {
@@ -210,11 +211,12 @@ public class TileEcoStorageDrive extends TileEcoStoragePart implements IInventor
     }
 
     /**
-     * t112 (upgrade-tree restriction, docs §3): each cell needs ITS OWN node on its chain —
-     * 256k works from the free base node (I1/F1/E1), every other size needs the node of the same
-     * index (1024k → I2/F2/E2 … 16384m → I9/F9/E9, 人造宇宙 → I10/F10/E10). When no controller is
-     * assembled the check is deferred (returns true) — the multiblock formation check
-     * re-validates statically (t62) so the pre-assembly bypass is closed.
+     * t112→t128 (upgrade-tree restriction, docs §3): each cell needs its chain's MERGED GROUP
+     * node — the k级 cells (256k..4096k) work from the free base node (I1/F1/E1★); 16M..256M →
+     * I2/F2/E2, 1024M..16384M → I3/F3/E3, 人造宇宙 → I4/F4/E4, and the family-exclusive
+     * infinite cells need F5/E5. When no controller is assembled the check is deferred (returns
+     * true) — the multiblock formation check re-validates statically (t62) so the pre-assembly
+     * bypass is closed.
      */
     public boolean isCellSupported(ItemStack stack) {
         if (stack == null || !(stack.getItem() instanceof ecoaegtnh.item.estorage.ItemEcoStorageCell)) {

@@ -90,20 +90,24 @@ public enum CellSize {
     }
 
     /**
-     * t114d: 1-based index of this size WITHIN the given family's chain (sizes that are not
-     * allowed for the family are skipped). E.g. ARCANE (enum ordinal 11) is the 11th size on
-     * the essentia chain → 11 → upgrade node E11; INF_WATER is the 11th on the fluid chain → F11.
-     * The upgrade-tree node id and the cell's required-node both derive from this, so they always
-     * agree even though the enum ordinals are shared across families.
+     * t128: the storage-tree node NUMBER for this size on its family chain — one node per merged
+     * capacity GROUP (each node unlocks three cell tiers): k级 (256k/1024k/4096k) → 1,
+     * M级 (16M/64M/256M) → 2, big-M (1024M/4096M/16384M) → 3, 人造宇宙 → 4, and the
+     * family-exclusive infinite cells (INF_WATER fluid-only / ARCANE essentia-only) → 5.
+     * The upgrade-tree node id is prefix + this number (I1..I4 / F1..F5 / E1..E5), so the tree
+     * and {@code ItemEcoStorageCell#getRequiredUpgradeNode()} always agree.
      */
-    public int chainIndex(StorageType type) {
-        int idx = 0;
-        for (CellSize s : values()) {
-            if (!s.allowed(type)) continue;
-            idx++;
-            if (s == this) return idx;
+    public int upgradeGroupIndex() {
+        if (this == INF_WATER || this == ARCANE) {
+            return 5;
         }
-        return 0;
+        if (this == UNIVERSE) {
+            return 4;
+        }
+        if (kilo) {
+            return 1;
+        }
+        return value < 1024 ? 2 : 3;
     }
 
     /**

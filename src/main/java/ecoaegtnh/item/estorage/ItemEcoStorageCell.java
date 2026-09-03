@@ -333,14 +333,15 @@ public abstract class ItemEcoStorageCell extends Item implements IStorageCell {
     }
 
     /**
-     * t112/t114d (one cell per node, docs §3): the storage-tree node this cell requires on its
-     * line — one node per SIZE, numbered by the size's position WITHIN the family chain
-     * ({@link CellSize#chainIndex}; 256k → I1/F1/E1 … 人造宇宙 → I10/F10/E10, 无限水 → F11,
-     * 魔导源质 → E11). Node N unlocks exactly the cell of that size.
+     * t128 (merged groups, docs §3 revision): the storage-tree node this cell requires on its
+     * line — one node per capacity GROUP, unlocking three cell tiers at once
+     * ({@link CellSize#upgradeGroupIndex}; 256k..4096k → I1/F1/E1, 16M..256M → I2/F2/E2,
+     * 1024M..16384M → I3/F3/E3, 人造宇宙 → I4/F4/E4, 无限水 → F5, 魔导源质 → E5). Activating the
+     * group node allows every cell of that group.
      */
     public String getRequiredUpgradeNode() {
         String prefix = getStorageType() == StorageType.FLUID ? "F"
             : getStorageType() == StorageType.ESSENTIA ? "E" : "I";
-        return prefix + size.chainIndex(getStorageType());
+        return prefix + size.upgradeGroupIndex();
     }
 }

@@ -314,12 +314,13 @@ public final class UpgradeTreeGui {
      * t69/t70: node positions for the overview, per tree — rectangular 40×15 buttons on a
      * 36px-row grid, horizontally centered in the 280px scroll area:
      * <ul>
-     * <li>calculator tree (has the OC terminal): cell main chain column x=57 (N1..N10), thread
-     * branch x=99 (from the N4 row), hyper branch x=141 (from the T2 row), parallel branch x=183
-     * (from the N4 row) and the OC terminal below the parallel branch (same column). Every
-     * connector runs right/down (dx, dy >= 0) from the parent's center to the child's.</li>
+     * <li>calculator tree (has the OC terminal): cell main chain column x=57 (N1..N5, t128 merged
+     * groups), thread branch x=99 (from the new N2 row), hyper branch x=141 (from the T2 row),
+     * parallel branch x=183 (from the new N2 row), built-in branch x=225 and the OC terminal
+     * below the parallel branch (same column). Every connector runs right/down (dx, dy >= 0)
+     * from the parent's center to the child's.</li>
      * <li>storage tree (no OC): three independent vertical chains (I/F/E columns x=72/120/168,
-     * 48px apart, centered).</li>
+     * 48px apart, centered; t128: I1..I4 / F1..F5 / E1..E5 merged groups).</li>
      * </ul>
      */
     private static java.util.Map<String, int[]> treePositions(Handler h) {
@@ -330,40 +331,45 @@ public final class UpgradeTreeGui {
         return storagePositions();
     }
 
-    /** t70/t114: calculator branch layout (columns N=57 / T=99 / H=141 / P=183, rows 36px, centered). */
+    /** t70/t114/t128: calculator branch layout (columns N=57 / T=99 / H=141 / P=183 / B=225, rows 36px). */
     private static java.util.Map<String, int[]> calculatorPositions() {
         java.util.Map<String, int[]> pos = new java.util.LinkedHashMap<>();
         int x0 = 57;
-        for (int i = 1; i <= 11; i++) { // t114: N11 = Singularity flash cell (奇点闪存晶阵)
+        // t128: merged main chain N1 (free head) → N2 → N3 → N4 (16384M) → N5 (奇点晶阵).
+        for (int i = 1; i <= 5; i++) {
             pos.put("N" + i, new int[] { x0, (i - 1) * ROW_DY });
         }
-        for (int i = 1; i <= 5; i++) { // t114f: T4/T5 = 32/64-thread cores
-            pos.put("T" + i, new int[] { x0 + COL_DX, 3 * ROW_DY + (i - 1) * ROW_DY });
-        }
+        // Thread branch T1..T3 heads off the new N2 (row 1; old branch base 4096k N4 merged into N2).
         for (int i = 1; i <= 3; i++) {
-            pos.put("H" + i, new int[] { x0 + 2 * COL_DX, 4 * ROW_DY + (i - 1) * ROW_DY });
+            pos.put("T" + i, new int[] { x0 + COL_DX, ROW_DY + (i - 1) * ROW_DY });
         }
-        for (int i = 1; i <= 9; i++) {
-            pos.put("P" + i, new int[] { x0 + 3 * COL_DX, 3 * ROW_DY + (i - 1) * ROW_DY });
+        // Hyper-thread branch H1 ← T2 (row 2), H2 ← T3 (row 3), H3 ← H2 (row 4, t128).
+        for (int i = 1; i <= 3; i++) {
+            pos.put("H" + i, new int[] { x0 + 2 * COL_DX, 2 * ROW_DY + (i - 1) * ROW_DY });
         }
-        // t114g: built-in thread branch (B1 ← N4, B2 ← B1) on its own column x0 + 4*COL_DX.
-        pos.put("B1", new int[] { x0 + 4 * COL_DX, 3 * ROW_DY });
-        pos.put("B2", new int[] { x0 + 4 * COL_DX, 4 * ROW_DY });
-        pos.put("OC", new int[] { x0 + 3 * COL_DX, 3 * ROW_DY + 8 * ROW_DY + ROW_DY });
+        // Parallel branch P1..P3 (t128 merged ≤16 / ≤1024 / ≤65536) heads off the new N2.
+        for (int i = 1; i <= 3; i++) {
+            pos.put("P" + i, new int[] { x0 + 3 * COL_DX, ROW_DY + (i - 1) * ROW_DY });
+        }
+        // t114g: built-in thread branch (B1 ← N2, B2 ← B1) on its own column x0 + 4*COL_DX.
+        pos.put("B1", new int[] { x0 + 4 * COL_DX, ROW_DY });
+        pos.put("B2", new int[] { x0 + 4 * COL_DX, 2 * ROW_DY });
+        // OC terminal under the parallel branch (prereqs N4 row 3 / T3 row 3 / H3 row 4 / P3 row 3).
+        pos.put("OC", new int[] { x0 + 3 * COL_DX, 4 * ROW_DY });
         return pos;
     }
 
     /**
-     * t69/t70/t112/t114: storage-tree positions — three independent vertical chains (I/F/E columns
-     * x=72/120/168, 48px apart, rows 36px; group horizontally centered in the 280px scroll area).
-     * t114: one node per cell — the item chain has 10 rows (256k..人造宇宙), the fluid chain 11
-     * (+F11 无限水) and the essentia chain 11 (+E11 魔导源质); 11×36 = 396px exceeds the 262px
-     * viewport, so the tree scrolls (the overview window is scrollable since t70).
+     * t69/t70/t112/t114→t128: storage-tree positions — three independent vertical chains (I/F/E
+     * columns x=72/120/168, 48px apart, rows 36px; group horizontally centered in the 280px
+     * scroll area). t128: one node per MERGED capacity group — the item chain has 4 rows
+     * (I1..I4: k级..人造宇宙), the fluid chain 5 (F1..F5, +无限水) and the essentia chain 5
+     * (E1..E5, +魔导源质); 5×36 = 180px fits the 262px viewport.
      */
     private static java.util.Map<String, int[]> storagePositions() {
         java.util.Map<String, int[]> pos = new java.util.LinkedHashMap<>();
         String[] chains = { "I", "F", "E" };
-        int[] rows = { 10, 11, 11 }; // t114: F/E chains gain the infinite-water / arcane node.
+        int[] rows = { 4, 5, 5 }; // t128: merged groups per family chain.
         int x0 = 72;
         for (int c = 0; c < chains.length; c++) {
             for (int i = 1; i <= rows[c]; i++) {

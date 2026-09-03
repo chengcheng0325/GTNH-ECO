@@ -187,6 +187,8 @@ public final class RegistryEcal {
         // t35: insertable core items — 9 parallel (1/4/16/64/256/1024/4096/16384/65536, ×4) and
         // 6 thread (normal 1/4/16 + hyper 0+4/4+8/8+16, t114s doubling), all tiers free. They
         // register to EcoAEGTNHCore.TAB_CALC (t41; TAB_CALC lists them explicitly).
+        // t128: the t114f 32/64-thread cores are REMOVED (no such cores exist; upgrade tree T4/T5
+        // nodes are gone too — any ≥16-thread core maps onto the T3 node).
         for (int parallelism : ItemEcalParallelCore.SIZES) {
             ItemEcalParallelCore core = new ItemEcalParallelCore(parallelism);
             PARALLEL_CORES.put(parallelism, core);
@@ -195,9 +197,6 @@ public final class RegistryEcal {
         registerThreadCore("1", 1, 0);
         registerThreadCore("4", 4, 0);
         registerThreadCore("16", 16, 0);
-        // t114f (user): 32/64-thread cores join the normal chain.
-        registerThreadCore("32", 32, 0);
-        registerThreadCore("64", 64, 0);
         // t114s (user): hyper core SUPPLIED thread counts doubled — hyper_2 = 0+4,
         // hyper_4 = 4+8, hyper_8 = 8+16 (registry suffix stays hyper_2/4/8).
         registerThreadCore("hyper_2", 0, 4);

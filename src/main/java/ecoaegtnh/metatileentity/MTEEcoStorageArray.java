@@ -64,6 +64,11 @@ import tectech.thing.metaTileEntity.multi.base.TTMultiblockBase;
  * ECO E-Storage Array controller (GT multiblock); capacity bands k / M / big-M
  * (t122 naming: the L4/L6/L9 controller tiers are gone).
  * <p>
+ * t123 (290b1 compatibility): createTooltip uses only MultiblockTooltipBuilder API present on
+ * both GT 5.09.52.594 (290b1) and 5.09.54.20 (290b2) — the (String,String,boolean) addCasing
+ * and addStructureFooter overloads are 54.20-only and crashed the 290b1 client with
+ * NoSuchMethodError during GT's machine-tooltip generation pass.
+ * <p>
  * Structure per DESIGN.md §1.7/§2.5 (t30 layout, user-confirmed): the controller anchor is the
  * head's front slice; the 1..12 drive columns extend to the RIGHT of the controller (the facing's
  * right-hand side, perpendicular to the front) — one 2-deep x 3-tall column per rightward step —
@@ -200,10 +205,11 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     protected final int tier;
 
     /**
-     * t62: upgrade tree for the storage array — 12 nodes across three independent chains
-     * (docs/ECO_UPGRADE_TREE_DESIGN.md §3: item I1★-I4 / fluid F1★-F4 / essentia E1★-E4); cell
-     * insertion and the formation check are gated by node activation. The three-layer GUI
-     * (ids 300/301/302) is shared with the calculator host via ecoaegtnh.upgrade.UpgradeTreeGui.
+     * t62/t128: upgrade tree for the storage array — 14 nodes across three independent chains
+     * (docs/ECO_UPGRADE_TREE_DESIGN.md §3 t128 revision: item I1★-I4 / fluid F1★-F5 / essentia
+     * E1★-E5, one node per MERGED three-tier capacity group); cell insertion and the formation
+     * check are gated by node activation. The three-layer GUI (ids 300/301/302) is shared with
+     * the calculator host via ecoaegtnh.upgrade.UpgradeTreeGui.
      */
     protected final ecoaegtnh.upgrade.UpgradeTree upgradeTree = ecoaegtnh.upgrade.StorageUpgradeTree.newInstance();
 
@@ -539,8 +545,9 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
 
         // t62: upgrade-tree gate at formation — close the pre-assembly bypass. While no
         // controller was assembled, TileEcoStorageDrive.isCellSupported() deferred the check
-        // (returned true), so an oversized cell (64M without I5/F5/E5, 16384M without I9/F9/E9,
-        // 人造宇宙 without I10/F10/E10) could be inserted before formation. Re-validate statically here (bay coordinates +
+        // (returned true), so a cell of a not-yet-unlocked MERGED GROUP (t128: e.g. 16M without
+        // I2/F2/E2, 1024M without I3/F3/E3, 人造宇宙 without I4/F4/E4) could be inserted before
+        // formation. Re-validate statically here (bay coordinates +
         // this controller's upgrade tree; the static helper does not touch the bay's controller
         // reference, preserving t55 claim independence): any bay holding a cell whose chain node
         // is not activated fails the structure check with a clear error. Post-formation insertion
@@ -859,35 +866,31 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     protected MultiblockTooltipBuilder createTooltip() {
         MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         // t51: single unified array — the machine-type line no longer shows a tier suffix.
+        // t123 (290b1 compat): the (String,String,boolean) addCasing / addStructureFooter overloads
+        // only exist on GT 5.09.54.20+ (NoSuchMethodError on 5.09.52.594) — build the same lines
+        // with addInfo (present on both versions) instead.
         tt.addMachineType(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.machinetype"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.mass_storage"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.power"))
             .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.info.no_maintenance"))
             .beginVariableStructureBlock(4, MAX_DRIVE_COLUMNS + 3, 3, 3, 2, 2, false)
             .addController(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.controller"))
-            .addCasing(
-                "2+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_casing.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_drive.name"),
-                false)
-            .addCasing(
-                "1+",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_capacitance.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_vent.name"),
-                false)
-            .addCasing(
-                "1",
-                net.minecraft.util.StatCollector.translateToLocal("tile.ecoaegtnh.storage_array_me_bus.name"),
-                false)
-            .addStructureFooter(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
+            .addInfo(casingLine("2+", "tile.ecoaegtnh.storage_array_casing.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.storage_array_drive.name"))
+            .addInfo(casingLine("1+", "tile.ecoaegtnh.storage_array_capacitance.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.storage_array_vent.name"))
+            .addInfo(casingLine("1", "tile.ecoaegtnh.storage_array_me_bus.name"))
+            .addInfo(net.minecraft.util.StatCollector.translateToLocal("ecoaegtnh.tooltip.footer.placement"))
             .toolTipFinisher();
         return tt;
+    }
+
+    /** t123: "amount <name>" structure line, styled like the newer GT addCasing overload. */
+    private static String casingLine(String amount, String nameKey) {
+        return net.minecraft.util.EnumChatFormatting.GOLD + amount
+            + " "
+            + net.minecraft.util.EnumChatFormatting.WHITE
+            + net.minecraft.util.StatCollector.translateToLocal(nameKey);
     }
 
     // ------------------------------------------------------------------
@@ -1585,6 +1588,10 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     // M3 (audit): GUI stat cache — the 12 FakeSyncWidget suppliers call these up to 20 Hz while a
     // GUI is open; each sumStat rebuilds every cell inventory (full NBT deserialization). Recompute
     // once per 20 ticks and let the suppliers read the cache.
+    // t127 (root cause, 290b1): the Long.MIN_VALUE sentinel made refreshStatCacheIfStale's first
+    // check `t - lastStatRefreshTick < 20` overflow to a negative value, so the cache NEVER
+    // refreshed — the IO-LED tooltip types/bytes rows stayed "0/0 (0%)" forever no matter which
+    // cells were inserted. The guard below is now overflow-safe (see refreshStatCacheIfStale).
     private long statItemStoredTypes, statItemTotalTypes, statItemUsedBytes, statItemTotalBytes;
     private long statFluidStoredTypes, statFluidTotalTypes, statFluidUsedBytes, statFluidTotalBytes;
     private long statEssentiaStoredTypes, statEssentiaTotalTypes, statEssentiaUsedBytes, statEssentiaTotalBytes;
@@ -1612,7 +1619,13 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
         }
         long t = getBaseMetaTileEntity().getWorld()
             .getTotalWorldTime();
-        if (t - lastStatRefreshTick < 20) {
+        // t127: overflow-safe staleness check. With lastStatRefreshTick == Long.MIN_VALUE (the
+        // initial sentinel), `t - lastStatRefreshTick` wraps around to a negative long for any
+        // non-negative world time t, so the old `if (t - lastStatRefreshTick < 20) return;` was
+        // always true and the cache never recomputed. Only compare elapsed time once a real tick
+        // has been recorded: the sentinel forces the first call to refresh immediately, then the
+        // cache refreshes every >= 20 world ticks as intended.
+        if (lastStatRefreshTick != Long.MIN_VALUE && t - lastStatRefreshTick < 20) {
             return;
         }
         lastStatRefreshTick = t;

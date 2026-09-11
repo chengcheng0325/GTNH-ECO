@@ -31,8 +31,9 @@ import ecoaegtnh.tile.ecalculator.TileEcalThreadDrive;
  * <p>
  * t35 (user decision): the parallel/thread/hyper CORE BLOCKS are removed entirely and replaced by
  * drive blocks + insertable core ITEMS — {@code ecalculator_parallel_drive} /
- * {@code ecalculator_thread_drive} (1 slot each) and 15 core items
- * ({@code ecal_parallel_core_1..65536} ×9, {@code ecal_thread_core_1/4/16} + hyper ×3), usable on
+ * {@code ecalculator_thread_drive} (1 slot each) and 17 core items
+ * ({@code ecal_parallel_core_1..65536} ×9 — t130 widened this to
+ * {@code ..262144/16777216} ×11, {@code ecal_thread_core_1/4/16} + hyper ×3), usable on
  * ANY controller tier (全档自由).
  * <p>
  * t41: all E-Calculator blocks/items register to {@link EcoAEGTNHCore#TAB_CALC} (the separate
@@ -184,7 +185,8 @@ public final class RegistryEcal {
         CELLS[ItemEcalCell.TIER_C9] = CELLS_BY_SIZE.get(CellSize.M_16384);
         cellC4 = CELLS[ItemEcalCell.TIER_C4];
 
-        // t35: insertable core items — 9 parallel (1/4/16/64/256/1024/4096/16384/65536, ×4) and
+        // t35: insertable core items — parallel cores driven by ItemEcalParallelCore.SIZES
+        // (t35: 9 tiers 1..65536; t130: 11 tiers, +262144/+16777216) and
         // 6 thread (normal 1/4/16 + hyper 0+4/4+8/8+16, t114s doubling), all tiers free. They
         // register to EcoAEGTNHCore.TAB_CALC (t41; TAB_CALC lists them explicitly).
         for (int parallelism : ItemEcalParallelCore.SIZES) {

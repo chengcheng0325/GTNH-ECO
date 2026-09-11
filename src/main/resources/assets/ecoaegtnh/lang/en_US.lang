@@ -1,4 +1,4 @@
-﻿itemGroup.ecoaegtnh=ECO AE Extension
+itemGroup.ecoaegtnh=ECO AE Extension
 
 # ------------------------------------------------------------------
 # Blocks
@@ -264,6 +264,8 @@ item.ecoaegtnh.ecal_parallel_core_1024.name=ECO Parallel Core (1024)
 item.ecoaegtnh.ecal_parallel_core_4096.name=ECO Parallel Core (4096)
 item.ecoaegtnh.ecal_parallel_core_16384.name=ECO Parallel Core (16384)
 item.ecoaegtnh.ecal_parallel_core_65536.name=ECO Parallel Core (65536)
+item.ecoaegtnh.ecal_parallel_core_262144.name=ECO Parallel Core (262144)
+item.ecoaegtnh.ecal_parallel_core_16777216.name=ECO Parallel Core (16777216)
 item.ecoaegtnh.ecal_thread_core_1.name=ECO Thread Core (1)
 item.ecoaegtnh.ecal_thread_core_4.name=ECO Thread Core (4)
 item.ecoaegtnh.ecal_thread_core_16.name=ECO Thread Core (16)
@@ -388,7 +390,7 @@ ecoaegtnh.upgrade.node.P7.effect=Unlocks 4096 parallel cores
 ecoaegtnh.upgrade.node.P8.name=Parallel 16384
 ecoaegtnh.upgrade.node.P8.effect=Unlocks 16384 parallel cores
 ecoaegtnh.upgrade.node.P9.name=Parallel 65536
-ecoaegtnh.upgrade.node.P9.effect=Unlocks 65536 parallel cores
+ecoaegtnh.upgrade.node.P9.effect=Unlocks 65536/262144/16777216 parallel cores
 ecoaegtnh.upgrade.node.OC.name=Overclock Mode
 ecoaegtnh.upgrade.node.OC.effect=Red line relaxed to 5%; hyper-thread storage +10% surcharge waived (requires Cell 16384M + Thread 16 + Hyper 8 + Parallel 65536)
 # t67: node short names (centered captions under the overview buttons)

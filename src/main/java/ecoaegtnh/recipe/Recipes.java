@@ -938,51 +938,178 @@ public final class Recipes {
     }
 
     // ------------------------------------------------------------------
-    // 濡ょ姷鍋為崕濂搞€侀幋锕€鍐€缂佸娉曟俊?9 濠碘剝顨愮紞鍥╂濡?14z 闂佹椿娼块崝宥夊春濞戙垹鏄ラ柛婵嗗濞呮瑩姊洪弶璺ㄐｉ柡?+ 闂備緡鍋呯敮妤冩暜瑜版帗鏅悗?14ab
-    // 婵烇絽娴傞崰妤咁敆濠婂牊鏅慨姗嗗亯閳峰牆鈽夐幙鍐х敖闁轰礁鎽滈幑鍕敍濞戞瑧鍑￠柡澶婄墛閹告悂宕ｉ崱娑欑劸濞寸姴顑傞崑鎾诲箛椤撴壕鍋撻崒鐐茬闁搞儮鏅犻悰鎾绘煥濞戞﹩妾х紒?
-    // 闂佺硶鏅涢幖顐﹀闯?= AE2 闂佸憡鑹鹃悧濠囧垂濮樿泛绀夐柣妯煎劦閸嬫捇鎮㈤柨瀣綔闂佹寧绋戝﹢鎭杘ckCraftingUnit/1闂? 缂備緡鍠楀畷妯尖偓姘▕閹姤鎷呴崘顏嗗敶闁? +
-    // 闂佽桨鑳舵晶妤€鐣垫笟鈧幃鑺ユ媴閸愵亞鍞撮柤? + 婵炵鍋愭慨鐢稿礉閸涙潙闂柍顓熸(32691)
-    // + 闂佸憡鐟﹂崹鐢告儍閻樿闂柍顓熸(32681) 闂?闂佸搫绉堕…鍫㈢紦?闂佹寧绋戝﹢姝忛梺鎸庣☉椤р偓缂佸崬宕闊洦鏌ｉ埀?闂佹椿婢€缁插鎯屾ィ鍐ㄧ骇?+1 缂備胶瀚忓鍥╊槱闁?
-    // 闂?Elite..Cosmic闂侀潧妫旈幀? 闂?
-    // Data..Exotic 闂備緡鍠涘Λ鍕暦瀹€鍕櫖濠㈣泛鐗冮崑鎾存媴閻戞ɑ姣勯梺?+1 缂備胶瀚忔担鎻掍壕濞达綁顥撻悙濠囨煙閹殿喖鏋庢繛?闂佸憡鐟﹂崹鐢告儍閻樿闂?+1
-    // 缂備胶瀚忓鍥╊槱婵犳鍠栭鍥╁垝閹炬壙鎺楀籍閸屾稒姣勯梺鍛娒鍕礊?1 缂備胶瀚忓鍥╊槴闂侀潧妫斿ù鍥╂椤撱垹绀?+1 缂?
-    // 闂?闂?闂?6闂佹剚鍋呭濠氬焵椤掑﹨鍚傞柛?5536闂佹寧绋戦ˇ顓㈠焵椤掆偓娴? 闂佹椿婢€缁插鎯屾ィ鍐ㄧ骇闁秆勵殕閹崇姴霉?Data
-    // 闁?+1闂佹寧绋掗寤皌a闂佹剚鍋呮晶鐢絠te闂佹剚鍋呮晶绌塻ter闂佹剚鍋呮竟寮唗imate闂?
-    // Superconductor闂佹剚鍋呮晶纭乫inite闂佹剚鍋呮晶鐚闂佹剚鍋呮晶绨唗ical闂佹剚鍋呮晶鐣憃tic闂侀潧妫楅崐鐟拔涢妶鍚よ鎷呮搴Ｐ梺?0
-    // 缂備礁顦扮敮鍥焵椤戣法鍔嶆俊顐犲€楃槐鎾诲冀椤愮喐鐓犻梺娲绘線缁插鎯屾ィ鍐ㄎ?
-    // 闂備緡鍠撻崝瀣枎?damage闂佹寧绋戝﹢娣?32000 闁诲骸婀遍崑鐘绘儊婢舵劖鏅鑸电〒缁愭鏌涘▎鎰仴闁汇劎濞€瀹?MV..UEV =
-    // 32681..32689闂佹寧绋戞總鏃傛閸洖绠涢柣鏃堟敱閻?32691..32699闂?
+    // 并行核心 11 档配方（t130，用户规格 docs/t130-parallel-core-recipe-spec.md §2，284 侧）：
+    // 组装机 7 档（1/4/16/64/256/1024/4096）+ 装配线 3 档（16384/65536/262144）
+    // + 太空组装模块 MK-III 1 档（16777216，MODULE_TIER=3）。
+    //
+    // 机器方块 = AE2 合成加速器 7 档（走 AE2 API；695 字节码实证的 damage 对照：
+    // BlockCraftingUnit /1=1x、/2=4x、/3=16x；BlockAdvancedCraftingUnit /0=64x、/1=256x、
+    // /2=1024x、/3=4096x —— ApiBlocks 构造器里 WrappedDamageItemDefinition(block, meta) 调用序）。
+    // 电路板一律矿词展开：284 无 OreDictItemStack（5.09.51.482 无该类），用本版本既有的
+    // {矿典名, 数量} 对写法，由 expandOreDictPairs 展开成每个矿典成员一条配方（NEI 显示全部
+    // 变体、任意成员可合成）。
+    // 部件 damage（IDMetaItem01 damage = ID+32000，字节码实证）：组装机发射器 MV..UV =
+    // 32681..32687、传感器 32691..32697（+10）；装配线发射器 UHV/UEV = 32688/32689、
+    // 传感器 UHV/UEV = 32698/32699。
+    // 装配线研究物品 = 同族低一档并行核心（GTNH 惯例，与既有晶阵装配线同法）；扫描电压 = 装配电压。
+    // gt.blockmachines/2020、2026、2054 —— 经 LoaderMetaPipeEntities 家族 id 复核有效（t130）：
+    // 这三档不是 MetaTileEntityIDs 里的多块机器，而是同一 gt.blockmachines 方块上的
+    // 管线/线缆/框架 id 空间（gregtech.loaders.preload.LoaderMetaPipeEntities 的
+    // WireCableBuilder/FluidPipeBuilder 家族表，MetaPipeEntity 的 getStackForm 同样取
+    // sBlockMachines + mID，故 meta 空间与 MTE 枚举是两套并行分配）：
+    // 2020 = startId(2020) SuperconductorUHV 线（UHV 超导线，6 个 wire id 的首个）
+    // 2026 = startId(2026) SuperconductorUEV 线（UEV 超导线）
+    // 2054 = startId(2052) SuperconductorUIVBase 线家族 +2（UIV 超导线）
+    // 同源校验：既有配方里的 1766/1748/1808/2365/2606/5153 同样落在这些家族内
+    // （1760+6、1740+8、1800+8、2360+5、2606 家族起始、5140+13），均有效。
     // ------------------------------------------------------------------
     private static void registerEcalParallelCores() {
-        ItemStack aeAccel = appeng.api.AEApi.instance()
-            .definitions()
-            .blocks()
-            .craftingAccelerator()
-            .maybeStack(1)
-            .orNull();
-        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536 };
-        String[] circuits = { "circuitElite", "circuitMaster", "circuitUltimate", "circuitSuperconductor",
-            "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic", "circuitCosmic" };
-        String[] circuits4 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
-            "circuitSuperconductor", "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic" };
+        // ---------- 组装机 7 档（spec §2.1）：无编程电路、10 秒、机器方块 ×1 ----------
+        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096 };
+        String[] circuits2 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite", "circuitBio" };
+        int[] counts2 = { 2, 2, 2, 2, 2, 2, 4 };
+        String[] circuits4 = { "circuitAdvanced", "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite" };
+        int[] counts4 = { 4, 4, 4, 4, 4, 4, 8 };
         long[] euts = { TierEU.RECIPE_HV, TierEU.RECIPE_EV, TierEU.RECIPE_IV, TierEU.RECIPE_LuV, TierEU.RECIPE_ZPM,
-            TierEU.RECIPE_UV, TierEU.RECIPE_UHV, TierEU.RECIPE_UEV, TierEU.RECIPE_UIV };
-        // t114z闂佹寧绋戦悧蹇涘极閵堝绠ｉ柛鎴欏€楃粈鍡涙煥濞戞瑧鐓紒鍗炵埣楠炲洭鎮㈤柨瀣綔/闂佸憡鐟﹂崹鐢告儍閻樿闂柕濞垮€楅惌?MV 闁荤姍鍥ㄦ暠闁伙腹鈧剚娴?+1
-        // 缂備胶瀚忓鍥╊槱1:MV闂?:HV闂?6:EV闂?4:IV闂?56:LuV闂?
-        // 1024:ZPM闂?096:UV闂?6384:UHV闂?5536:UEV闂佹寧绋戦¨鈧紒杈ㄧ箖閹便劎鈧綆鍓涢惌鎺撴叏閿濆棙鈷掗柡浣规倐瀹曘垻鈧絺鏅濈粔?1 缂備胶瀚忔担鎻掍壕?
-        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697, 32698, 32699 };
-        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687, 32688, 32689 };
+            TierEU.RECIPE_UV, TierEU.RECIPE_UHV };
+        // 发射器/传感器从 MV 起每档 +1 级（1:MV、4:HV、16:EV、64:IV、256:LuV、1024:ZPM、4096:UV）。
+        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687 };
+        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697 };
         for (int i = 0; i < cores.length; i++) {
             tryAddAssemblerNoCircuit(
                 "ecal.parallel_core_" + cores[i],
-                new Object[] { aeAccel, new Object[] { circuits[i], 2 }, new Object[] { circuits4[i], 4 },
-                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 1),
-                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 1) },
+                new Object[] { aeCraftingAccelerator(i, 1), new Object[] { circuits2[i], counts2[i] },
+                    new Object[] { circuits4[i], counts4[i] },
+                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 2),
+                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 2) },
                 new FluidStack[0],
                 new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(cores[i]), 1),
                 euts[i],
                 10 * SECONDS);
         }
+
+        // ---------- 装配线 3 档（spec §2.2）：输入顺序严格照规格，不得重排 ----------
+        // 16384（UEV，120s，7 项）：4096x 加速器×16 + OC 103×16 + 生物电路×8 + 无限电路×16
+        // + 发射器 UHV(32688)×4 + 传感器 UHV(32698)×4 + gt.blockmachines/2020×32。
+        tryAddAL(
+            "ecal.parallel_core_16384",
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(4096), 1),
+            new Object[] { aeCraftingAccelerator(6, 16), findItemStack("OpenComputers", "item", 103, 16),
+                new Object[] { "circuitBio", 8 }, new Object[] { "circuitInfinite", 16 },
+                findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
+                findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
+            new FluidStack[0],
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            120 * SECONDS);
+
+        // 65536（UEV，240s，8 项）：4096x 加速器×64 + OC 103×64 + MU-metaitem.01/32105×1
+        // + 生物电路×16 + 无限电路×32 + 发射器 UEV(32689)×8 + 传感器 UEV(32699)×8
+        // + gt.blockmachines/2026×32。
+        tryAddAL(
+            "ecal.parallel_core_65536",
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new Object[] { "circuitBio", 16 },
+                new Object[] { "circuitInfinite", 32 }, findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
+            new FluidStack[0],
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+
+        // 262144（UEV，240s，8 项）：4096x 加速器×64 + OC 103×64 + gt.metaitem.03/4581×16
+        // （4581 = nanite 前缀(序 4)×1000 + TranscendentMetal subID 581，字节码/源码实证）
+        // + 光学电路×16 + 生物电路×32 + 发射器 UEV(32689)×8 + 传感器 UEV(32699)×8
+        // + gt.blockmachines/2054×32。
+        tryAddAL(
+            "ecal.parallel_core_262144",
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new Object[] { "circuitOptical", 16 },
+                new Object[] { "circuitBio", 32 }, findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
+            new FluidStack[0],
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(262144), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+
+        // ---------- 太空组装模块 MK-III（spec §2.3）：12 项输入，顺序照规格，不得重排 ----------
+        // 16777216（MAX，120s，MK-III）：4096x×64 + 时间膨胀场发生器/8×8 + 时空压缩场发生器/8×8
+        // + OC 103×64 + 超越电路×16 + AE2 人工宇宙盘×1 + gt.metaitem.03/4143×8
+        // （4143 = nanite 前缀(序 4)×1000 + MagMatter subID 143，字节码/源码实证）
+        // + 超越电路×16 + 4096x×64 + 时间膨胀场发生器/8×8 + 稳定场发生器/8×8 + OC 103×64。
+        // circuitTranscendent 出现两次 = 用户有意的两个槽位；AE2 人工宇宙盘 = 规格里的
+        // appliedenergistics2:item.ItemExtremeStorageCell.Universe（AE2 API cellUniverse()，
+        // 695 字节码实证：注册序 Container/Quantum/Singularity/Universe → damage 3）。
+        tryAddSpaceAssembler(
+            "ecal.parallel_core_16777216",
+            new Object[] { aeCraftingAccelerator(6, 64),
+                findItemStack("tectech", "gt.time_acceleration_field_generator", 8, 8),
+                findItemStack("tectech", "gt.spacetime_compression_field_generator", 8, 8),
+                findItemStack("OpenComputers", "item", 103, 64), new Object[] { "circuitTranscendent", 16 },
+                appeng.api.AEApi.instance()
+                    .definitions()
+                    .items()
+                    .cellUniverse()
+                    .maybeStack(1)
+                    .orNull(),
+                findItemStack("gregtech", "gt.metaitem.03", 4143, 8), new Object[] { "circuitTranscendent", 16 },
+                aeCraftingAccelerator(6, 64), findItemStack("tectech", "gt.time_acceleration_field_generator", 8, 8),
+                findItemStack("tectech", "gt.stabilisation_field_generator", 8, 8),
+                findItemStack("OpenComputers", "item", 103, 64) },
+            new FluidStack[0],
+            new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(16777216), 1),
+            TierEU.RECIPE_MAX,
+            120 * SECONDS,
+            3); // MK-III
+    }
+
+    /**
+     * t130（spec §2.1）：组装机 7 档并行核心的机器方块 —— AE2 合成加速器（NEI 显示为
+     * {@code appliedenergistics2:tile.BlockCraftingUnit /1../3} 与
+     * {@code tile.BlockAdvancedCraftingUnit /0../3}）。走 AE2 API 定义而不是注册名字符串，避免
+     * 注册名拼写差异导致配方被静默跳过；AE2 缺席时返回 null，配方辅助方法会跳过并打警告。
+     *
+     * @param index 0..6 → 1x/4x/16x/64x/256x/1024x/4096x（规格 §2.1 的 7 个机器方块）
+     * @param count 该方块在配方里的数量（组装机 ×1；装配线/太空模块按规格 ×16 或 ×64）
+     */
+    private static ItemStack aeCraftingAccelerator(int index, int count) {
+        appeng.api.definitions.IItemDefinition definition;
+        appeng.api.definitions.IBlocks blocks = appeng.api.AEApi.instance()
+            .definitions()
+            .blocks();
+        switch (index) {
+            case 0:
+                definition = blocks.craftingAccelerator();
+                break;
+            case 1:
+                definition = blocks.craftingAccelerator4x();
+                break;
+            case 2:
+                definition = blocks.craftingAccelerator16x();
+                break;
+            case 3:
+                definition = blocks.craftingAccelerator64x();
+                break;
+            case 4:
+                definition = blocks.craftingAccelerator256x();
+                break;
+            case 5:
+                definition = blocks.craftingAccelerator1024x();
+                break;
+            default:
+                definition = blocks.craftingAccelerator4096x();
+                break;
+        }
+        return definition == null ? null
+            : definition.maybeStack(count)
+                .orNull();
     }
 
     // ------------------------------------------------------------------
@@ -1561,11 +1688,12 @@ public final class Recipes {
             LOG.warn("Skipping ECO recipe '{}': output is null.", name);
             return;
         }
-        // 284（t6）：5.09.51.482 的默认 recipeEmitter 把 {矿典名,数量} 对展开的 alts 折叠成
-        // 第一个成员（build() 而非 buildWithAlt()，见 移植报告 §0.2）——把"单矿典对"配方在
-        // 注册期展开成每个矿典成员一条配方（每个成员作独立 ItemStack 输入），恢复 2.9.0 的
-        // 矿典多物品行为（NEI 多行 + 任意成员可合成）。多矿典对配方返回 null 保持原写法。
-        java.util.List<Object[]> variants = expandSingleOreDictPair(inputs);
+        // 284（t6）→ t130（captain 批准的 B 方案）：5.09.51.482 的默认 recipeEmitter 把 {矿典名,数量}
+        // 对展开的 alts 折叠成第一个成员（build() 而非 buildWithAlt()，见 移植报告 §0.2）——在注册期把配方
+        // 里的每个矿典对展开成每个矿典成员一条配方（每个成员作独立 ItemStack 输入），恢复 2.9.0 的矿典多物品
+        // 行为（NEI 多行 + 任意成员可合成）。0 对仍返回 null（保持原写法）；1 对与旧实现逐字节等价；≥2 对做
+        // 笛卡尔积（284 无 OreDictItemStack，电路板矿词只能靠展开落地）；超 64 变体记 WARN 回退。
+        java.util.List<Object[]> variants = expandOreDictPairs(inputs);
         if (variants == null) {
             variants = java.util.Collections.singletonList(inputs);
         }
@@ -1598,35 +1726,67 @@ public final class Recipes {
         }
     }
 
+    /** t130：单条配方的矿典对展开变体上限；超过则记 WARN 并回退原写法（防配方表被撑爆）。 */
+    private static final int MAX_OREDICT_VARIANTS = 64;
+
     /**
-     * 284（t6）：把"恰好一个 {矿典名, 数量} 对元素"的配方展开成每个矿典成员一条配方的输入
-     * 变体。5.09.51.482 的组装机配方映射默认 recipeEmitter 走 build()（非 buildWithAlt()），
-     * 矿典 alts 会被折叠成第一个注册成员——NEI 只显示一个物品、且只有该成员能匹配（GT 输入
-     * 总线统一化只认识 GT5U 自己的矿典名，circuitAdvanced 不在其中，不会归一化其他成员）。
-     * 本方法在注册期遍历 OreDictionary.getOres(矿典名)，为每个成员生成一个把矿典对替换成
-     * 该成员 ItemStack 的输入变体。返回 null 表示无需展开（无矿典对 / 多个矿典对 / 矿典未注册）。
+     * t130（284，captain 批准的 B 方案）：把"任意数量 {矿典名, 数量} 对"的配方在注册期展开成每个
+     * 矿典成员一条配方（每对都替换成该成员的具体 ItemStack），从而恢复 5.09.54 的矿典多物品行为
+     * （NEI 多行 + 任意成员可合成）。根因同 t6：5.09.51.482 的组装机/装配线默认 recipeEmitter 走
+     * build()（非 buildWithAlt()），矿典 alts 会被折叠成第一个注册成员——NEI 只显示一个物品、且只有
+     * 该成员能匹配（GT 输入总线统一化只认识 GT5U 自己的矿典名，circuitAdvanced 不在其中，不会归一化
+     * 其他成员）。用户明确要求"配方里的电路板要使用矿词（主要是 HV 电路板）"，故 284 必须展开。
+     * <p>
+     * 行为约定（与既有 expandSingleOreDictPair 的关系已用独立仿真逐项证明）：
+     * <ul>
+     * <li>0 个矿典对 → 返回 null（调用方保持原写法）；</li>
+     * <li>恰好 1 个矿典对 → 与旧实现<b>逐项、逐序、含数量完全一致</b>（现有 8 条单矿典对配方不受影响）；</li>
+     * <li>≥2 个矿典对 → 笛卡尔积（旧实现直接返回 null，即 284 的电路板矿词要求此前落空）；</li>
+     * <li>任一矿典未注册 → 返回 null；</li>
+     * <li>变体数超过 {@link #MAX_OREDICT_VARIANTS} → 记 WARN 并返回 null 回退原写法。</li>
+     * </ul>
      */
-    private static java.util.List<Object[]> expandSingleOreDictPair(Object[] inputs) {
-        int pairIndex = -1;
+    private static java.util.List<Object[]> expandOreDictPairs(Object[] inputs) {
+        java.util.List<Integer> pairIndexes = new java.util.ArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             if (inputs[i] instanceof Object[]inner && inner.length == 2
                 && inner[0] instanceof String
                 && inner[1] instanceof Number) {
-                if (pairIndex >= 0) return null; // 多个矿典对 → 不展开（保持原写法）
-                pairIndex = i;
+                pairIndexes.add(i);
             }
         }
-        if (pairIndex < 0) return null;
-        Object[] inner = (Object[]) inputs[pairIndex];
-        String oreName = (String) inner[0];
-        int count = ((Number) inner[1]).intValue();
-        java.util.List<net.minecraft.item.ItemStack> ores = net.minecraftforge.oredict.OreDictionary.getOres(oreName);
-        if (ores.isEmpty()) return null; // 矿典未注册 → 保持原对（itemInputs 自行处理）
+        if (pairIndexes.isEmpty()) return null;
+        java.util.List<java.util.List<net.minecraft.item.ItemStack>> members = new java.util.ArrayList<>();
+        long total = 1;
+        for (int index : pairIndexes) {
+            Object[] inner = (Object[]) inputs[index];
+            java.util.List<net.minecraft.item.ItemStack> ores = net.minecraftforge.oredict.OreDictionary
+                .getOres((String) inner[0]);
+            if (ores.isEmpty()) return null; // 矿典未注册 → 保持原写法
+            members.add(ores);
+            total *= ores.size();
+            if (total > MAX_OREDICT_VARIANTS) {
+                LOG.warn(
+                    "ECO recipe: {} ore-dict combination(s) exceed the {} variant cap - keeping the raw ore-dict writing instead.",
+                    total,
+                    MAX_OREDICT_VARIANTS);
+                return null;
+            }
+        }
         java.util.List<Object[]> variants = new java.util.ArrayList<>();
-        for (net.minecraft.item.ItemStack ore : ores) {
-            Object[] variant = inputs.clone();
-            variant[pairIndex] = gregtech.api.util.GTUtility.copyAmount(count, ore);
-            variants.add(variant);
+        variants.add(inputs.clone());
+        for (int k = 0; k < pairIndexes.size(); k++) {
+            int index = pairIndexes.get(k);
+            int count = ((Number) ((Object[]) inputs[index])[1]).intValue();
+            java.util.List<Object[]> next = new java.util.ArrayList<>();
+            for (Object[] variant : variants) {
+                for (net.minecraft.item.ItemStack ore : members.get(k)) {
+                    Object[] copy = variant.clone();
+                    copy[index] = gregtech.api.util.GTUtility.copyAmount(count, ore);
+                    next.add(copy);
+                }
+            }
+            variants = next;
         }
         return variants;
     }

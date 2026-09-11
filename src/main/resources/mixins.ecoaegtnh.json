@@ -13,7 +13,8 @@
     "MixinCraftingCPUStatus",
     "MixinContainerCraftConfirm",
     "MixinCraftingCPUCluster",
-    "MixinCraftingGridCache"
+    "MixinCraftingGridCache",
+    "MixinCellRegistry"
   ],
   "client": [
     "MixinGuiNetworkStatus",

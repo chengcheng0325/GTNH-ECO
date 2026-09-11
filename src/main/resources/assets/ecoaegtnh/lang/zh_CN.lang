@@ -251,7 +251,7 @@ ecoaegtnh.tooltip.ecal.block.cell_drive=晶阵驱动器提供闪存晶阵存储�
 ecoaegtnh.tooltip.ecal.block.me_channel=矩阵通讯接口是子系统与 ME 网络的协议兼容层：连接 ME 线缆以接入合成任务（vCPU 经此对外提供），不消耗额外能源
 ecoaegtnh.tooltip.ecal.block.transmitter_bus=超导晶阵传输总线：扩展段内计算数据的传输通道
 ecoaegtnh.tooltip.ecal.block.casing=结构组件：构成计算主机头部与扩展段的外壳
-# ===== E-Calculator t35：可插入核心物品（并行 ×9 + 线程 ×6，里程碑等级门控） =====
+# ===== E-Calculator t35：可插入核心物品（并行 ×11 + 线程 ×6，里程碑等级门控） =====
 item.ecoaegtnh.ecal_parallel_core_1.name=ECO 并行核心 (1)
 item.ecoaegtnh.ecal_parallel_core_4.name=ECO 并行核心 (4)
 item.ecoaegtnh.ecal_parallel_core_16.name=ECO 并行核心 (16)
@@ -261,6 +261,8 @@ item.ecoaegtnh.ecal_parallel_core_1024.name=ECO 并行核心 (1024)
 item.ecoaegtnh.ecal_parallel_core_4096.name=ECO 并行核心 (4096)
 item.ecoaegtnh.ecal_parallel_core_16384.name=ECO 并行核心 (16384)
 item.ecoaegtnh.ecal_parallel_core_65536.name=ECO 并行核心 (65536)
+item.ecoaegtnh.ecal_parallel_core_262144.name=ECO 并行核心 (262144)
+item.ecoaegtnh.ecal_parallel_core_16777216.name=ECO 并行核心 (16777216)
 item.ecoaegtnh.ecal_thread_core_1.name=ECO 线程核心 (1)
 item.ecoaegtnh.ecal_thread_core_4.name=ECO 线程核心 (4)
 item.ecoaegtnh.ecal_thread_core_16.name=ECO 线程核心 (16)
@@ -358,7 +360,7 @@ ecoaegtnh.upgrade.node.P1.effect=解锁 1/4/16 并行核心（需要 晶阵·409
 ecoaegtnh.upgrade.node.P2.name=并行·64~1024
 ecoaegtnh.upgrade.node.P2.effect=解锁 64/256/1024 并行核心
 ecoaegtnh.upgrade.node.P3.name=并行·4096~65536
-ecoaegtnh.upgrade.node.P3.effect=解锁 4096/16384/65536 并行核心
+ecoaegtnh.upgrade.node.P3.effect=解锁 4096/16384/65536/262144/16777216 并行核心
 # ---- 超频（OC） / 内置线程（B1/B2） ----
 ecoaegtnh.upgrade.node.OC.name=超频模式
 ecoaegtnh.upgrade.node.OC.effect=红线放宽至 5%，超线程存储 +10% 免额（需要 晶阵·16384M + 线程·16 + 超线程·8 + 并行·65536）

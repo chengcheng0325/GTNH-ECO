@@ -71,8 +71,8 @@ public final class Recipes {
         LOG.info(
             "ECO recipes registered: {} assembler + {} assembly-line (estorage: cells=27 shapeless, components/housings="
                 + "6 assembler, component chain=24 assembler/assembly-line + 2 space-assembler, parts/controllers=5 "
-                + "assembler + 1 workbench, ecalculator=6 assembler + 9 parallel cores + 6 thread cores + 3 flash "
-                + "cells + 1 workbench), skipped={}",
+                + "assembler + 1 workbench, ecalculator=6 assembler + 7 parallel cores + 3 parallel assembly-line "
+                + "+ 1 parallel space-assembler (MK-III) + 6 thread cores + 3 flash cells + 1 workbench), skipped={}",
             registeredAssemblerRecipes,
             registeredALRecipes,
             skippedRecipes);
@@ -894,43 +894,192 @@ public final class Recipes {
     }
 
     // ------------------------------------------------------------------
-    // 并行核心 9 档（t114z 用户基准配方 + 递推，t114ab 修正：两个电路板输入都逐档升级）：
-    // 基准 = AE2 合成加速器（BlockCraftingUnit/1）+ 精英电路×2 + 数据电路×4 + 传感器MV(32691)
-    // + 发射器MV(32681) → 核心1（HV）；每档"电路板 +1 级（×2 链 Elite..Cosmic、×4 链
-    // Data..Exotic 都升）、电压 +1 级、传感器/发射器 +1 级（始终比电压低 1 级）、输出 +1 级"
-    // （1→4→16→…→65536）。×4 电路板链从 Data 起 +1：Data→Elite→Master→Ultimate→
-    // Superconductor→Infinite→Bio→Optical→Exotic。无流体、10 秒、无编程电路。
-    // 部件 damage（ID+32000 实证）：发射器 MV..UEV = 32681..32689，传感器 32691..32699。
+    // 并行核心 11 档（t130，用户规格 docs/t130-parallel-core-recipe-spec.md §2 —— 逐格照写，
+    // 不做任何替换/换算，电路板一律矿词展开 OreDictItemStack，禁止 GTOreDictUnificator.get）：
+    // 组装机 7 档（1/4/16/64/256/1024/4096）：无编程电路、10 秒、无流体。
+    // 机器方块 = AE2 合成加速器 1x/4x/16x/64x/256x/1024x/4096x（§2.1 的 7 个方块与 7 档一一对应）；
+    // ×2 电路链 Data→Elite→Master→Ultimate→Superconductor→Infinite→Bio（_4096 为 ×4）；
+    // ×4 电路链 Advanced→Data→Elite→Master→Ultimate→Superconductor→Infinite（_4096 为 ×8）；
+    // 发射器/传感器始终比电压低 1 级（1:MV … 4096:UV）各 ×2；电压 HV→UHV 每档 +1 级。
+    // 装配线 3 档（16384/65536/262144）：UEV、120/240/240 **秒**、无流体，输入顺序照 §2.2 不得重排。
+    // 太空组装模块 MK-III 1 档（16777216）：MAX、120 秒、12 项输入顺序照 §2.3 不得重排
+    // （circuitTranscendent 出现两次 = 两个槽位，用户有意为之）。
+    // 时间单位：与 290b2（t1）实现逐字对齐 —— §2.1 明确写「10 秒」；§2.2/§2.3 的 120/240
+    // 规格未写单位，按「秒」落地（三版本一致；若用户本意是 tick，三处去掉 *SECONDS 即可）。
     // ------------------------------------------------------------------
     private static void registerEcalParallelCores() {
-        ItemStack aeAccel = appeng.api.AEApi.instance()
-            .definitions()
-            .blocks()
-            .craftingAccelerator()
-            .maybeStack(1)
-            .orNull();
-        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536 };
-        String[] circuits = { "circuitElite", "circuitMaster", "circuitUltimate", "circuitSuperconductor",
-            "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic", "circuitCosmic" };
-        String[] circuits4 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
-            "circuitSuperconductor", "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic" };
+        // ---------- 组装机 7 档（§2.1） ----------
+        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096 };
+        String[] circuits2 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite", "circuitBio" };
+        String[] circuits4 = { "circuitAdvanced", "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite" };
+        // _4096 一档按用户 (b)（规格 §5）：与 16384/65536 同用 Bio/Infinite，只翻倍数量 → ×4/×8。
+        int[] count2 = { 2, 2, 2, 2, 2, 2, 4 };
+        int[] count4 = { 4, 4, 4, 4, 4, 4, 8 };
         long[] euts = { TierEU.RECIPE_HV, TierEU.RECIPE_EV, TierEU.RECIPE_IV, TierEU.RECIPE_LuV, TierEU.RECIPE_ZPM,
-            TierEU.RECIPE_UV, TierEU.RECIPE_UHV, TierEU.RECIPE_UEV, TierEU.RECIPE_UIV };
-        // t114z（用户）：传感器/发射器从 MV 起每档 +1 级（1:MV、4:HV、16:EV、64:IV、256:LuV、
-        // 1024:ZPM、4096:UV、16384:UHV、65536:UEV），始终比电压低 1 级。
-        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697, 32698, 32699 };
-        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687, 32688, 32689 };
+            TierEU.RECIPE_UV, TierEU.RECIPE_UHV };
+        // 部件 damage（ID+32000 实证）：发射器 MV..UHV = 32681..32687，传感器 32691..32697。
+        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687 };
+        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697 };
         for (int i = 0; i < cores.length; i++) {
             tryAddAssemblerNoCircuit(
                 "ecal.parallel_core_" + cores[i],
-                new Object[] { aeAccel, new OreDictItemStack(circuits[i], 2), new OreDictItemStack(circuits4[i], 4),
-                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 1),
-                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 1) },
+                new Object[] { aeCraftingAccelerator(i, 1), new OreDictItemStack(circuits2[i], count2[i]),
+                    new OreDictItemStack(circuits4[i], count4[i]),
+                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 2),
+                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 2) },
                 new FluidStack[0],
-                new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(cores[i]), 1),
+                new ItemStack(RegistryEcal.PARALLEL_CORES.get(cores[i]), 1),
                 euts[i],
                 10 * SECONDS);
         }
+
+        // ---------- 装配线 3 档（§2.2，输入顺序照写；研究物品 = 上一档核心） ----------
+        // gt.blockmachines/2020、/2026、/2054 经 t130 复核有效（t130）：它们由
+        // gregtech.loaders.preload.LoaderMetaPipeEntities（管线/线缆/框架家族）以
+        // startId(2020)/startId(2026)/startId(2052) + 家族内偏移分配 —— gt.blockmachines 同时承载
+        // MTE 与 MPE（管/缆/框架），所以这些 id 不出现在 MetaTileEntityIDs 枚举里属正常。
+        tryAddAL(
+            "ecal.parallel_core_16384",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(4096), 1),
+            new Object[] { aeCraftingAccelerator(6, 16), findItemStack("OpenComputers", "item", 103, 16),
+                new OreDictItemStack("circuitBio", 8), new OreDictItemStack("circuitInfinite", 16),
+                findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
+                findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            120 * SECONDS);
+        tryAddAL(
+            "ecal.parallel_core_65536",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new OreDictItemStack("circuitBio", 16),
+                new OreDictItemStack("circuitInfinite", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+        tryAddAL(
+            "ecal.parallel_core_262144",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new OreDictItemStack("circuitOptical", 16),
+                new OreDictItemStack("circuitBio", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(262144), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+
+        // ---------- 太空组装模块 MK-III 1 档（§2.3，12 项顺序照写） ----------
+        tryAddSpaceAssembler(
+            "ecal.parallel_core_16777216",
+            new Object[] { aeCraftingAccelerator(6, 64),
+                tectechFieldGenerator("gt.time_acceleration_field_generator", 0, 8),
+                tectechFieldGenerator("gt.spacetime_compression_field_generator", 1, 8),
+                findItemStack("OpenComputers", "item", 103, 64), new OreDictItemStack("circuitTranscendent", 16),
+                aeUniverseStorageCell(), findItemStack("gregtech", "gt.metaitem.03", 4143, 8),
+                new OreDictItemStack("circuitTranscendent", 16), aeCraftingAccelerator(6, 64),
+                tectechFieldGenerator("gt.time_acceleration_field_generator", 0, 8),
+                tectechFieldGenerator("gt.stabilisation_field_generator", 2, 8),
+                findItemStack("OpenComputers", "item", 103, 64) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16777216), 1),
+            TierEU.RECIPE_MAX,
+            120 * SECONDS,
+            3); // MK-III
+    }
+
+    /**
+     * t130（spec §2.1/§2.2/§2.3，三版本统一签名）：并行核心配方里的机器方块 —— AE2 合成加速器。
+     *
+     * @param index 0..6 = 1x/4x/16x/64x/256x/1024x/4096x（与规格 §2.1 的 7 个方块一一对应）。
+     *              index 0..2 命中用户 NEI 写法的 {@code appliedenergistics2:tile.BlockCraftingUnit}
+     *              meta 1/2/3，index 3..6 命中 {@code tile.BlockAdvancedCraftingUnit} meta 0/1/2/3。
+     * @param count 数量（§2.1 = 1；§2.2/§2.3 = 16/64，其中 _16777216 的第 1、9 项都是 64）
+     *
+     *              <p>
+     *              取法为「注册名优先 + AEApi 回退」双路径：AE2 的方块注册名由运行期构造，静态不可证，
+     *              所以先按用户写法解析；解析不到时回退 AEApi 定义访问器取同一组方块 —— 两者字节码
+     *              实证等价（ApiBlocks 构造器）：craftingAccelerator = (craftingUnit,1)、4x = (,2)、
+     *              16x = (,3)、64x = (BlockAdvancedCraftingUnit,0)、256x = (,1)、1024x = (,2)、
+     *              4096x = (,3)。
+     */
+    private static ItemStack aeCraftingAccelerator(int index, int count) {
+        String name = index <= 2 ? "tile.BlockCraftingUnit" : "tile.BlockAdvancedCraftingUnit";
+        int meta = index <= 2 ? index + 1 : index - 3;
+        ItemStack byName = findItemStack("appliedenergistics2", name, meta, count);
+        if (byName != null) {
+            return byName;
+        }
+        appeng.api.definitions.IBlocks blocks = appeng.api.AEApi.instance()
+            .definitions()
+            .blocks();
+        appeng.api.definitions.IItemDefinition definition;
+        switch (index) {
+            case 0:
+                definition = blocks.craftingAccelerator();
+                break;
+            case 1:
+                definition = blocks.craftingAccelerator4x();
+                break;
+            case 2:
+                definition = blocks.craftingAccelerator16x();
+                break;
+            case 3:
+                definition = blocks.craftingAccelerator64x();
+                break;
+            case 4:
+                definition = blocks.craftingAccelerator256x();
+                break;
+            case 5:
+                definition = blocks.craftingAccelerator1024x();
+                break;
+            default:
+                definition = blocks.craftingAccelerator4096x();
+                break;
+        }
+        return definition == null ? null
+            : definition.maybeStack(count)
+                .orNull();
+    }
+
+    /**
+     * t130：tectech 场发生器方块 meta 8（规格 §2.3）。按用户写法优先取注册名
+     * {@code tectech:gt.<x>_field_generator}/8；不可解析时回退 {@code CustomItemList.*Tier8}
+     * （字节码实证：三块都是 0..8 共 9 档，meta i = Tier{i}）。
+     *
+     * @param index 0 = time acceleration, 1 = spacetime compression, 2 = stabilisation
+     */
+    private static ItemStack tectechFieldGenerator(String name, int index, int count) {
+        ItemStack byName = findItemStack("tectech", name, 8, count);
+        if (byName != null) {
+            return byName;
+        }
+        tectech.thing.CustomItemList[] tier8 = { tectech.thing.CustomItemList.TimeAccelerationFieldGeneratorTier8,
+            tectech.thing.CustomItemList.SpacetimeCompressionFieldGeneratorTier8,
+            tectech.thing.CustomItemList.StabilisationFieldGeneratorTier8 };
+        return tier8[index].get(count);
+    }
+
+    /**
+     * t130：规格 §2.3 的 {@code appliedenergistics2:item.ItemExtremeStorageCell.Universe}×1。
+     * 该物品在 AE2U 里按名字构造注册（规格原文要求先确认取法），故走公开 API 访问器
+     * {@code IItems.cellUniverse()}（977 字节码实证存在，语义等价且抗注册名漂移）。
+     */
+    private static ItemStack aeUniverseStorageCell() {
+        return appeng.api.AEApi.instance()
+            .definitions()
+            .items()
+            .cellUniverse()
+            .maybeStack(1)
+            .orNull();
     }
 
     // ------------------------------------------------------------------

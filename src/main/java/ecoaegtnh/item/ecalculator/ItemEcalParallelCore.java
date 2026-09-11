@@ -11,14 +11,15 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
  * t35: E-Calculator parallel core (并行核心) insertable item — supplies parallelism to a
- * {@code BlockEcalParallelDrive} (1 slot). Nine sizes (1/4/16/64/256/1024/4096/16384/65536,
- * ×4 increments), usable on ANY controller tier (全档自由 — no tier gate). Registry
- * {@code ecal_parallel_core_<value>}, texture {@code ecal_parallel_core_<value>} (T36 art).
+ * {@code BlockEcalParallelDrive} (1 slot). t130: eleven sizes (1/4/16/64/256/1024/4096/16384/
+ * 65536/262144/16777216, ×4 increments; the last two are user-spec additions), usable on ANY
+ * controller tier (全档自由 — no tier gate). Registry {@code ecal_parallel_core_<value>},
+ * texture {@code ecal_parallel_core_<value>} (T36 art).
  */
 public class ItemEcalParallelCore extends Item {
 
-    /** The nine parallelism values (×4 increments). */
-    public static final int[] SIZES = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536 };
+    /** The eleven parallelism values (×4 increments); t130 adds 262144 + 16777216. */
+    public static final int[] SIZES = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 16777216 };
 
     protected final int parallelism;
 
@@ -37,7 +38,8 @@ public class ItemEcalParallelCore extends Item {
 
     /**
      * t50 (milestone gate, docs §4.1): parallel-branch line level required to insert this core —
-     * 1/4/16 → Lv1+, 64/256 → Lv2+, 1024/4096 → Lv3+, 16384 → Lv4+, 65536 → Lv5+.
+     * 1/4/16 → Lv1+, 64/256 → Lv2+, 1024/4096 → Lv3+, 16384 → Lv4+, ≥65536 → Lv5+
+     * (t130: the two new tiers 262144/16777216 fall in the tail branch → Lv5+, unchanged rule).
      */
     public int getRequiredMilestoneLevel() {
         if (parallelism <= 16) return 1;
@@ -50,7 +52,7 @@ public class ItemEcalParallelCore extends Item {
     /**
      * t65→t128 (upgrade tree, docs §2 revision): the parallel-branch node required to insert
      * this core — one node per MERGED GROUP of three parallelism tiers: ≤16 (1/4/16) → P1,
-     * ≤1024 (64/256/1024) → P2, ≤65536 (4096/16384/65536) → P3.
+     * ≤1024 (64/256/1024) → P2, >1024 (4096/16384/65536 + t130 262144/16777216) → P3.
      */
     public String getRequiredUpgradeNode() {
         if (parallelism <= 16) {

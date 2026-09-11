@@ -149,8 +149,8 @@ public class EcoAEGTNHCore {
         // t12 (plan §9.2): the E-Calculator family tab. displayAllReleventItems forces the
         // explicit order (t104 lesson). t23: full C4→C6→C9 controller listing. t37: the
         // parallel/thread CORE BLOCKS are gone (t35) — the tab lists the drive blocks once each
-        // and the 15 insertable core items small → large (parallel 1..65536, thread 1/4/16,
-        // hyper 2/4/8), plus the nine flash cells (t29). t41: all E-Calculator items/blocks
+        // and the 15 insertable core items small → large (t130: parallel 1..16777216 ×11, thread
+        // 1/4/16, hyper 2/4/8), plus the nine flash cells (t29). t41: all E-Calculator items/blocks
         // register to this tab (the separate core-item tab is removed).
         TAB_CALC = new CreativeTabs("ecoaegtnh.calc") {
 
@@ -174,7 +174,7 @@ public class EcoAEGTNHCore {
                 list.add(new ItemStack(ecoaegtnh.registry.RegistryEcal.cellDrive));
                 list.add(new ItemStack(ecoaegtnh.registry.RegistryEcal.transmitterBus));
                 list.add(new ItemStack(ecoaegtnh.registry.RegistryEcal.meChannel));
-                // Parallel core items, small → large (SIZES is ascending: 1..65536).
+                // Parallel core items, small → large (SIZES is ascending: 1..16777216, t130 ×11).
                 for (int parallelism : ecoaegtnh.item.ecalculator.ItemEcalParallelCore.SIZES) {
                     list.add(new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(parallelism)));
                 }

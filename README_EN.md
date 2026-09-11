@@ -7,6 +7,14 @@
 
 # ECO AE Extension (GTNH)
 
+[![Release](https://img.shields.io/github/v/release/chengcheng0325/GTNH-ECO?label=release&sort=semver)](https://github.com/chengcheng0325/GTNH-ECO/releases)
+[![Downloads](https://img.shields.io/github/downloads/chengcheng0325/GTNH-ECO/total?label=downloads)](https://github.com/chengcheng0325/GTNH-ECO/releases)
+[![License](https://img.shields.io/badge/license-LGPL--3.0-blue)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/chengcheng0325/GTNH-ECO?label=stars)](https://github.com/chengcheng0325/GTNH-ECO/stargazers)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
+[![GTNH](https://img.shields.io/badge/GTNH-2.9.0--beta--2%20%7C%202.9.0--beta--1%20%7C%202.8.4-0a7bbb)](https://github.com/GTNewHorizons)
+[![modid](https://img.shields.io/badge/modid-ecoaegtnh-4c8bf5)](#)
+
 **ECO AE Extension** is a GTNH (Minecraft 1.7.10) addon that brings the **E-Storage Array** and
 the **E-Calculator (Extensible Computation Subsystem)** to GT5-Unofficial multiblocks with deep
 Applied Energistics 2 (Unofficial) integration.

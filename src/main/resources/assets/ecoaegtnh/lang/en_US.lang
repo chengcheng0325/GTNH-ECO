@@ -264,6 +264,8 @@ item.ecoaegtnh.ecal_parallel_core_1024.name=ECO Parallel Core (1024)
 item.ecoaegtnh.ecal_parallel_core_4096.name=ECO Parallel Core (4096)
 item.ecoaegtnh.ecal_parallel_core_16384.name=ECO Parallel Core (16384)
 item.ecoaegtnh.ecal_parallel_core_65536.name=ECO Parallel Core (65536)
+item.ecoaegtnh.ecal_parallel_core_262144.name=ECO Parallel Core (262144)
+item.ecoaegtnh.ecal_parallel_core_16777216.name=ECO Parallel Core (16777216)
 item.ecoaegtnh.ecal_thread_core_1.name=ECO Thread Core (1)
 item.ecoaegtnh.ecal_thread_core_4.name=ECO Thread Core (4)
 item.ecoaegtnh.ecal_thread_core_16.name=ECO Thread Core (16)
@@ -362,7 +364,7 @@ ecoaegtnh.upgrade.node.P1.effect=Unlocks 1/4/16 parallel cores (requires Cell 40
 ecoaegtnh.upgrade.node.P2.name=Parallel 64~1024
 ecoaegtnh.upgrade.node.P2.effect=Unlocks 64/256/1024 parallel cores
 ecoaegtnh.upgrade.node.P3.name=Parallel 4096~65536
-ecoaegtnh.upgrade.node.P3.effect=Unlocks 4096/16384/65536 parallel cores
+ecoaegtnh.upgrade.node.P3.effect=Unlocks 4096/16384/65536/262144/16777216 parallel cores
 # ---- Overclock (OC) / built-in threads (B1/B2) ----
 ecoaegtnh.upgrade.node.OC.name=Overclock Mode
 ecoaegtnh.upgrade.node.OC.effect=Red line relaxed to 5%; hyper-thread storage +10% surcharge waived (requires Cell 16384M + Thread 16 + Hyper 8 + Parallel 65536)

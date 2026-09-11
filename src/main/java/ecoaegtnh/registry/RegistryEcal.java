@@ -33,7 +33,8 @@ import ecoaegtnh.tile.ecalculator.TileEcalThreadDrive;
  * drive blocks + insertable core ITEMS — {@code ecalculator_parallel_drive} /
  * {@code ecalculator_thread_drive} (1 slot each) and 15 core items
  * ({@code ecal_parallel_core_1..65536} ×9, {@code ecal_thread_core_1/4/16} + hyper ×3), usable on
- * ANY controller tier (全档自由).
+ * ANY controller tier (全档自由). t130 (spec §1): the parallel ladder is extended to eleven
+ * entries ({@code ecal_parallel_core_1..16777216}, adding 262144/16777216).
  * <p>
  * t41: all E-Calculator blocks/items register to {@link EcoAEGTNHCore#TAB_CALC} (the separate
  * TAB_ECAL_CORES tab is removed; TAB_CALC lists everything explicitly).
@@ -189,6 +190,8 @@ public final class RegistryEcal {
         // register to EcoAEGTNHCore.TAB_CALC (t41; TAB_CALC lists them explicitly).
         // t128b: the t114f 32/64-thread cores are REMOVED (no such cores exist; upgrade tree T4/T5
         // nodes are gone too — any ≥16-thread core maps onto the T3 node).
+        // t130 (spec §1): SIZES grew to eleven (…, 262144, 16777216) — the loop below is
+        // data-driven, so both new tiers register here automatically.
         for (int parallelism : ItemEcalParallelCore.SIZES) {
             ItemEcalParallelCore core = new ItemEcalParallelCore(parallelism);
             PARALLEL_CORES.put(parallelism, core);

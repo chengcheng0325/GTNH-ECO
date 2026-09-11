@@ -71,8 +71,8 @@ public final class Recipes {
         LOG.info(
             "ECO recipes registered: {} assembler + {} assembly-line (estorage: cells=27 shapeless, components/housings="
                 + "6 assembler, component chain=24 assembler/assembly-line + 2 space-assembler, parts/controllers=5 "
-                + "assembler + 1 workbench, ecalculator=6 assembler + 9 parallel cores + 6 thread cores + 3 flash "
-                + "cells + 1 workbench), skipped={}",
+                + "assembler + 1 workbench, ecalculator=6 assembler + 7 parallel cores + 3 parallel assembly-line "
+                + "+ 1 parallel space-assembler (MK-III) + 6 thread cores + 3 flash cells + 1 workbench), skipped={}",
             registeredAssemblerRecipes,
             registeredALRecipes,
             skippedRecipes);
@@ -894,43 +894,227 @@ public final class Recipes {
     }
 
     // ------------------------------------------------------------------
-    // 并行核心 9 档（t114z 用户基准配方 + 递推，t114ab 修正：两个电路板输入都逐档升级）：
-    // 基准 = AE2 合成加速器（BlockCraftingUnit/1）+ 精英电路×2 + 数据电路×4 + 传感器MV(32691)
-    // + 发射器MV(32681) → 核心1（HV）；每档"电路板 +1 级（×2 链 Elite..Cosmic、×4 链
-    // Data..Exotic 都升）、电压 +1 级、传感器/发射器 +1 级（始终比电压低 1 级）、输出 +1 级"
-    // （1→4→16→…→65536）。×4 电路板链从 Data 起 +1：Data→Elite→Master→Ultimate→
-    // Superconductor→Infinite→Bio→Optical→Exotic。无流体、10 秒、无编程电路。
-    // 部件 damage（ID+32000 实证）：发射器 MV..UEV = 32681..32689，传感器 32691..32699。
+    // 并行核心 11 档（t130 用户规格，docs/t130-parallel-core-recipe-spec.md §2）：
+    // 组装机 7 档 1/4/16/64/256/1024/4096（spec §2.1）：机器方块逐档换成 AE2 合成加速器
+    // 1x/4x/16x/64x/256x/1024x/4096x，×2 电路链 Data→Elite→Master→Ultimate→Superconductor
+    // →Infinite→Bio、×4 电路链 Advanced→Data→Elite→Master→Ultimate→Superconductor→Infinite，
+    // 发射器/传感器始终比电压低 1 级且各 ×2，电压 HV/EV/IV/LuV/ZPM/UV/UHV，10 秒、无编程电路。
+    // 装配线 3 档 16384/65536/262144（spec §2.2）：输入项与顺序照规格逐条照抄（装配线输入有
+    // 槽位顺序意义），UEV，120/240/240 秒。
+    // 太空组装模块 MK-III 1 档 16777216（spec §2.3）：12 项定序输入（circuitTranscendent 有意
+    // 出现两次 = 两个槽位），MODULE_TIER=3（MK-III），MAX，120 秒。
+    // 电路板一律走 OreDictItemStack 矿词展开（t114x 教训：GTOreDictUnificator.get 只返回矿词统一
+    // 后的单个物品，NEI 只显示一种变体、机器只接受那一种）。
+    // 机器方块用 AE2 API（AEApi…definitions().blocks()）解析 = 规格表里用户从 NEI 抄的
+    // appliedenergistics2:tile.BlockCraftingUnit/1..3 与 tile.BlockAdvancedCraftingUnit/0..3，
+    // 逐档对应见 aeCraftingAccelerator 的注释（r3-beta-1000 字节码实证）。
+    // 部件 damage（IDMetaItem01 damage = ID+32000，字节码实证）：发射器 MV..UEV = 32681..32689，
+    // 传感器 = 32691..32699（+10）。
+    // 规格未定项（已报 captain）：装配线研究物品 = 同族低一档并行核心（GTNH 惯例，与既有 16m..
+    // 16384m 晶阵装配线配方同法）；扫描电压 = 装配电压（既有装配线配方同法）。
+    // t130 captain 裁定 (a)：spec §2 的物品与数量一律照用户原样写（"我怎么写你就怎么做"），
+    // 不替换、不跳过、不静默改成别的 id。需"待用户 NEI 复核"标注的仅剩静态无法证实者：
+    // OpenComputers:item/103、ItemExtremeStorageCell.Universe
+    // （标注原文「用户给定值（静态无法证实），待用户 NEI 复核 — t130」按条写在对应配方前）。
+    // gt.blockmachines/2020|2026|2054 经复核**有效**（290b2：LoaderMetaPipeEntities 家族 startId
+    // 2020/2026/2052 字节码实证；captain 以 5.09.51.482 的 164 个常量 + 家族偏移独立复核一致），
+    // 故这三条标注已改为「经 LoaderMetaPipeEntities 家族 id 复核有效 — t130」。
+    // 注：captain 早先把 gt.metaitem.03/4141|4143|4581|6581 判为"越界"，该结论**已撤回**——
+    // metaitem.03 的 meta = 前缀序号×1000 + 材料 subID（前缀表 [4]=nanite），4143/4581 均为有效
+    // meta，故不加待复核标注（同规则适用于 290b1/284）。
+    // 既有 9 档核心以外的既有配方（宇宙盘/奇点盘/并行驱动器等）本轮一字未动。
     // ------------------------------------------------------------------
     private static void registerEcalParallelCores() {
-        ItemStack aeAccel = appeng.api.AEApi.instance()
-            .definitions()
-            .blocks()
-            .craftingAccelerator()
-            .maybeStack(1)
-            .orNull();
-        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536 };
-        String[] circuits = { "circuitElite", "circuitMaster", "circuitUltimate", "circuitSuperconductor",
-            "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic", "circuitCosmic" };
-        String[] circuits4 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
-            "circuitSuperconductor", "circuitInfinite", "circuitBio", "circuitOptical", "circuitExotic" };
+        // ---------- 组装机 7 档（spec §2.1） ----------
+        int[] cores = { 1, 4, 16, 64, 256, 1024, 4096 };
+        String[] circuits2 = { "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite", "circuitBio" };
+        int[] counts2 = { 2, 2, 2, 2, 2, 2, 4 };
+        String[] circuits4 = { "circuitAdvanced", "circuitData", "circuitElite", "circuitMaster", "circuitUltimate",
+            "circuitSuperconductor", "circuitInfinite" };
+        int[] counts4 = { 4, 4, 4, 4, 4, 4, 8 };
         long[] euts = { TierEU.RECIPE_HV, TierEU.RECIPE_EV, TierEU.RECIPE_IV, TierEU.RECIPE_LuV, TierEU.RECIPE_ZPM,
-            TierEU.RECIPE_UV, TierEU.RECIPE_UHV, TierEU.RECIPE_UEV, TierEU.RECIPE_UIV };
-        // t114z（用户）：传感器/发射器从 MV 起每档 +1 级（1:MV、4:HV、16:EV、64:IV、256:LuV、
-        // 1024:ZPM、4096:UV、16384:UHV、65536:UEV），始终比电压低 1 级。
-        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697, 32698, 32699 };
-        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687, 32688, 32689 };
+            TierEU.RECIPE_UV, TierEU.RECIPE_UHV };
+        // 发射器/传感器从 MV 起每档 +1 级（1:MV、4:HV、16:EV、64:IV、256:LuV、1024:ZPM、4096:UV）。
+        int[] emitters = { 32681, 32682, 32683, 32684, 32685, 32686, 32687 };
+        int[] sensors = { 32691, 32692, 32693, 32694, 32695, 32696, 32697 };
         for (int i = 0; i < cores.length; i++) {
             tryAddAssemblerNoCircuit(
                 "ecal.parallel_core_" + cores[i],
-                new Object[] { aeAccel, new OreDictItemStack(circuits[i], 2), new OreDictItemStack(circuits4[i], 4),
-                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 1),
-                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 1) },
+                new Object[] { aeCraftingAccelerator(i, 1), new OreDictItemStack(circuits2[i], counts2[i]),
+                    new OreDictItemStack(circuits4[i], counts4[i]),
+                    findItemStack("gregtech", "gt.metaitem.01", emitters[i], 2),
+                    findItemStack("gregtech", "gt.metaitem.01", sensors[i], 2) },
                 new FluidStack[0],
-                new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(cores[i]), 1),
+                new ItemStack(RegistryEcal.PARALLEL_CORES.get(cores[i]), 1),
                 euts[i],
                 10 * SECONDS);
         }
+
+        // ---------- 装配线 3 档（spec §2.2）：输入顺序严格照规格 ----------
+        // 16384（UEV，120s，7 项）：4096x 加速器×16 + OC 103×16 + 生物电路×8 + 无限电路×16
+        // + 发射器 UHV(32688)×4 + 传感器 UHV(32698)×4 + gt.blockmachines/2020×32
+        // （2020 = 超导 UHV 线缆家族起始 meta，5.09.54.20 源码/字节码实证）。
+        // 待复核输入（本档，逐条标注）：
+        // 用户给定值（静态无法证实），待用户 NEI 复核 — t130
+        // · OpenComputers:item/103 ×16 —— 既有配方沿用（t114 起），meta 语义未在静态核验中确认
+        // · gregtech:gt.blockmachines/2020 ×32 —— 经 LoaderMetaPipeEntities 家族 id 复核有效 — t130
+        // （290b2 实证：`WireCableBuilder(SuperconductorUHV).startId(2020)`，线与缆每家族各占 6 格、
+        // disableCable() → 2020..2025 均为线缆；captain 另以 5.09.51.482 的 164 个常量 + 家族偏移
+        // 独立复核，结论一致 ⇒ 不再列入"待 NEI 复核"）
+        tryAddAL(
+            "ecal.parallel_core_16384",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(4096), 1),
+            new Object[] { aeCraftingAccelerator(6, 16), findItemStack("OpenComputers", "item", 103, 16),
+                new OreDictItemStack("circuitBio", 8), new OreDictItemStack("circuitInfinite", 16),
+                findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
+                findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            120 * SECONDS);
+
+        // 65536（UEV，240s，8 项）：4096x 加速器×64 + OC 103×64 + MU-metaitem.01/32105×1
+        // + 生物电路×16 + 无限电路×32 + 发射器 UEV(32689)×8 + 传感器 UEV(32699)×8
+        // + gt.blockmachines/2026×32（2026 = 超导 UEV 线缆家族起始 meta）。
+        // 待复核输入（本档，逐条标注）：
+        // 用户给定值（静态无法证实），待用户 NEI 复核 — t130
+        // · OpenComputers:item/103 ×64 —— 既有配方沿用（t114 起），meta 语义未在静态核验中确认
+        // miscutils:MU-metaitem.01/32105：实现方静态实证存在（部署实例 GregTech.lang
+        // `MU-metaitem.01.32105.name=Quantum Anomaly`，GT++ MetaGeneratedGregtechItems，offset 32000
+        // + ItemID 105），故不列待复核；仅提示运行时物品名为 Quantum Anomaly（与较早文档里的
+        // "超级湿件维生电路基板"不同名，但 ID 即用户给定值）。
+        // · gregtech:gt.blockmachines/2026 ×32 —— 经 LoaderMetaPipeEntities 家族 id 复核有效 — t130
+        // （290b2 实证：`.startId(2026)` for SuperconductorUEV；captain 独立复核一致）
+        tryAddAL(
+            "ecal.parallel_core_65536",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new OreDictItemStack("circuitBio", 16),
+                new OreDictItemStack("circuitInfinite", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+
+        // 262144（UEV，240s，8 项）：4096x 加速器×64 + OC 103×64 + gt.metaitem.03/4581×16
+        // + 光学电路×16 + 生物电路×32 + 发射器 UEV(32689)×8 + 传感器 UEV(32699)×8
+        // + gt.blockmachines/2054×32（2054 = 超导 UIV 线缆家族第 3 个 meta = 4x 线缆）。
+        // gt.metaitem.03/4581 = 纳米机 × Transcendent Metal（有效 meta：metaitem.03 的 meta =
+        // 前缀序号×1000 + 材料 subID，前缀表 [4]=nanite ⇒ 4×1000+581；t130 captain 复核确认，
+        // 早先"越界"结论已撤回。旁证：本版本整合包自带 BetterQuesting「NanoForgeTier3」任务数据
+        // 即引用 gregtech:gt.metaitem.03/4581）。
+        // 待复核输入（本档，逐条标注）：
+        // 用户给定值（静态无法证实），待用户 NEI 复核 — t130
+        // · OpenComputers:item/103 ×64 —— 既有配方沿用（t114 起），meta 语义未在静态核验中确认
+        // · gregtech:gt.blockmachines/2054 ×32 —— 经 LoaderMetaPipeEntities 家族 id 复核有效 — t130
+        // （290b2 实证：`.startId(2052)` for SuperconductorUIVBase，2054 = 2052+2 落在该家族 6 格内、
+        // disableCable() → 均为线缆；captain 独立复核 2052+2=2054 一致）
+        tryAddAL(
+            "ecal.parallel_core_262144",
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
+            new Object[] { aeCraftingAccelerator(6, 64), findItemStack("OpenComputers", "item", 103, 64),
+                findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new OreDictItemStack("circuitOptical", 16),
+                new OreDictItemStack("circuitBio", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
+                findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(262144), 1),
+            TierEU.RECIPE_UEV,
+            TierEU.RECIPE_UEV,
+            240 * SECONDS);
+
+        // ---------- 太空组装模块 MK-III（spec §2.3）：12 项输入，顺序照规格，不得重排 ----------
+        // 16777216（MAX，120s，MK-III）：4096x×64 + 时间膨胀场发生器/8×8 + 时空压缩场发生器/8×8
+        // + OC 103×64 + 超越电路×16 + AE2 人工宇宙盘×1 + gt.metaitem.03/4143×8 + 超越电路×16
+        // + 4096x×64 + 时间膨胀场发生器/8×8 + 稳定场发生器/8×8 + OC 103×64。
+        // circuitTranscendent 出现两次 = 用户有意的两个槽位；AE2 人工宇宙盘 = 规格里的
+        // appliedenergistics2:item.ItemExtremeStorageCell.Universe（AE2 API cellUniverse()，
+        // rv3-beta-1000 字节码实证：注册序 Container/Quantum/Singularity/Universe）。
+        // 待复核输入（本档，逐条标注）：
+        // 用户给定值（静态无法证实），待用户 NEI 复核 — t130
+        // · OpenComputers:item/103 ×64 ×2（第 4、12 槽）—— 既有配方沿用，meta 语义未静态确认
+        // 用户给定值（静态无法证实），待用户 NEI 复核 — t130
+        // · appliedenergistics2:item.ItemExtremeStorageCell.Universe ×1 —— 取法已字节码核实
+        // （API `IItems.cellUniverse()` = `ItemExtremeStorageCell` 第 4 变体；ApiItems 构造序
+        // Container/Quantum/Singularity/Universe 实证）；注册名字符串形式未静态复原，仍建议 NEI 抽查
+        // gt.metaitem.03/4143 = 纳米机 × Magmatter（有效 meta：4×1000+143；t130 captain 复核确认，
+        // 早先"越界"结论已撤回）。
+        tryAddSpaceAssembler(
+            "ecal.parallel_core_16777216",
+            new Object[] { aeCraftingAccelerator(6, 64),
+                findItemStack("tectech", "gt.time_acceleration_field_generator", 8, 8),
+                findItemStack("tectech", "gt.spacetime_compression_field_generator", 8, 8),
+                findItemStack("OpenComputers", "item", 103, 64), new OreDictItemStack("circuitTranscendent", 16),
+                appeng.api.AEApi.instance()
+                    .definitions()
+                    .items()
+                    .cellUniverse()
+                    .maybeStack(1)
+                    .orNull(),
+                findItemStack("gregtech", "gt.metaitem.03", 4143, 8), new OreDictItemStack("circuitTranscendent", 16),
+                aeCraftingAccelerator(6, 64), findItemStack("tectech", "gt.time_acceleration_field_generator", 8, 8),
+                findItemStack("tectech", "gt.stabilisation_field_generator", 8, 8),
+                findItemStack("OpenComputers", "item", 103, 64) },
+            new FluidStack[0],
+            new ItemStack(RegistryEcal.PARALLEL_CORES.get(16777216), 1),
+            TierEU.RECIPE_MAX,
+            120 * SECONDS,
+            3); // MK-III
+    }
+
+    /**
+     * t130（spec §2.1，captain 裁定 (a) 采纳 290b1 结论）：组装机 7 档并行核心的机器方块 —— AE2
+     * 合成加速器，用 {@code AEApi.instance().definitions().blocks()} 的访问器取（与既有 9 档写法
+     * 一致、抗漂移）。访问器 ↔ 用户写的注册名 + meta 逐项等价（AE2U rv3-beta-1000 字节码实证：
+     * {@code ApiBlocks} 的 {@code WrappedDamageItemDefinition} 构造参数即 meta）：
+     * <ul>
+     * <li>tier 0 {@code craftingAccelerator()} → {@code appliedenergistics2:tile.BlockCraftingUnit} /1
+     * （1x 合成加速器）；</li>
+     * <li>tier 1 {@code craftingAccelerator4x()} → {@code tile.BlockCraftingUnit} /2（4x）；</li>
+     * <li>tier 2 {@code craftingAccelerator16x()} → {@code tile.BlockCraftingUnit} /3（16x）；</li>
+     * <li>tier 3 {@code craftingAccelerator64x()} → {@code appliedenergistics2:tile.BlockAdvancedCraftingUnit}
+     * /0（64x）；</li>
+     * <li>tier 4 {@code craftingAccelerator256x()} → {@code tile.BlockAdvancedCraftingUnit} /1（256x）；</li>
+     * <li>tier 5 {@code craftingAccelerator1024x()} → {@code tile.BlockAdvancedCraftingUnit} /2（1024x）；</li>
+     * <li>tier 6 {@code craftingAccelerator4096x()} → {@code tile.BlockAdvancedCraftingUnit} /3（4096x）。</li>
+     * </ul>
+     * 用访问器可避免 AE2 注册名字符串拼写差异（jar 内并无 {@code tile.BlockCraftingUnit} 字面量）导致
+     * 配方被静默跳过；AE2 缺席时访问器返回 null，配方辅助方法会跳过并打警告（t7 空值安全）。
+     */
+    private static ItemStack aeCraftingAccelerator(int tier, int count) {
+        appeng.api.definitions.IBlocks blocks = appeng.api.AEApi.instance()
+            .definitions()
+            .blocks();
+        appeng.api.definitions.IItemDefinition definition;
+        switch (tier) {
+            case 0:
+                definition = blocks.craftingAccelerator();
+                break;
+            case 1:
+                definition = blocks.craftingAccelerator4x();
+                break;
+            case 2:
+                definition = blocks.craftingAccelerator16x();
+                break;
+            case 3:
+                definition = blocks.craftingAccelerator64x();
+                break;
+            case 4:
+                definition = blocks.craftingAccelerator256x();
+                break;
+            case 5:
+                definition = blocks.craftingAccelerator1024x();
+                break;
+            default:
+                definition = blocks.craftingAccelerator4096x();
+                break;
+        }
+        return definition == null ? null
+            : definition.maybeStack(count)
+                .orNull();
     }
 
     // ------------------------------------------------------------------

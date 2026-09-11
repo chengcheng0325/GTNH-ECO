@@ -14,11 +14,16 @@ import cpw.mods.fml.common.registry.GameRegistry;
  * {@code BlockEcalParallelDrive} (1 slot). Nine sizes (1/4/16/64/256/1024/4096/16384/65536,
  * ×4 increments), usable on ANY controller tier (全档自由 — no tier gate). Registry
  * {@code ecal_parallel_core_<value>}, texture {@code ecal_parallel_core_<value>} (T36 art).
+ * <p>
+ * t130 (user spec, docs/t130-parallel-core-recipe-spec.md §1): two new sizes — {@code 262144} and
+ * {@code 16777216} — bring the ladder to ELEVEN tiers (×4 increments). Both reuse the existing
+ * gates unchanged (see {@link #getRequiredMilestoneLevel()}/{@link #getRequiredUpgradeNode()}):
+ * parallel &gt; 16384 → milestone Lv5, parallel &gt; 1024 → upgrade node P3, no new nodes.
  */
 public class ItemEcalParallelCore extends Item {
 
-    /** The nine parallelism values (×4 increments). */
-    public static final int[] SIZES = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536 };
+    /** The eleven parallelism values (×4 increments). */
+    public static final int[] SIZES = { 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 16777216 };
 
     protected final int parallelism;
 
@@ -37,7 +42,8 @@ public class ItemEcalParallelCore extends Item {
 
     /**
      * t50 (milestone gate, docs §4.1): parallel-branch line level required to insert this core —
-     * 1/4/16 → Lv1+, 64/256 → Lv2+, 1024/4096 → Lv3+, 16384 → Lv4+, 65536 → Lv5+.
+     * 1/4/16 → Lv1+, 64/256 → Lv2+, 1024/4096 → Lv3+, 16384 → Lv4+, 65536 and above (incl. the
+     * t130 262144/16777216 tiers) → Lv5+.
      */
     public int getRequiredMilestoneLevel() {
         if (parallelism <= 16) return 1;
@@ -50,7 +56,8 @@ public class ItemEcalParallelCore extends Item {
     /**
      * t65→t128b (upgrade tree, docs §2 revision): the parallel-branch node required to insert
      * this core — one node per MERGED GROUP of three parallelism tiers: ≤16 (1/4/16) → P1,
-     * ≤1024 (64/256/1024) → P2, ≤65536 (4096/16384/65536) → P3.
+     * ≤1024 (64/256/1024) → P2, ≤65536 (4096/16384/65536) → P3. t130 keeps this grouping for the
+     * two new tiers: 262144/16777216 also require P3 (no new node, per the t130 spec §1).
      */
     public String getRequiredUpgradeNode() {
         if (parallelism <= 16) {

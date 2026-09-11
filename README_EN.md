@@ -1,5 +1,4 @@
-# ⚠️ Back up your world first
-
+> [!WARNING]
 > **Back up your world before installing, updating or removing this mod.**
 > This mod writes into world data (multiblock machines, the contents of storage cells, crafting job queues) - if something goes wrong, or you need to roll back, that data **cannot be recovered** without a backup.
 > On a client, back up the `saves` folder; on a server, back up the `world` folder (including `level.dat` and `DIM*`).

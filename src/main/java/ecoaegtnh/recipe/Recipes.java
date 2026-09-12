@@ -947,7 +947,7 @@ public final class Recipes {
                 new OreDictItemStack("circuitBio", 8), new OreDictItemStack("circuitInfinite", 16),
                 findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
                 findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(1152) }, // t130b 补流体（AL 要求 ≥1 种）
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -959,7 +959,7 @@ public final class Recipes {
                 findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new OreDictItemStack("circuitBio", 16),
                 new OreDictItemStack("circuitInfinite", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(2304) }, // t130b 补流体（AL 要求 ≥1 种）
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -971,7 +971,7 @@ public final class Recipes {
                 findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new OreDictItemStack("circuitOptical", 16),
                 new OreDictItemStack("circuitBio", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(4608) }, // t130b 补流体（AL 要求 ≥1 种）
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(262144), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,

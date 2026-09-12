@@ -18,6 +18,7 @@
   ],
   "client": [
     "MixinGuiNetworkStatus",
-    "MixinGuiCraftingCPUTable"
+    "MixinGuiCraftingCPUTable",
+    "MixinNEICellViewHandler"
   ]
 }

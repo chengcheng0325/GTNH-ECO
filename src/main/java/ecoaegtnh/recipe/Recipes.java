@@ -952,6 +952,14 @@ public final class Recipes {
         }
 
         // ---------- 装配线 3 档（spec §2.2）：输入顺序严格照规格 ----------
+        // t20（实机缺陷修复，用户裁定焊接合金台阶）：GT 装配线映射对输入流体做
+        // validateInputFluidCount(1,4) 校验，零流体的这三条会被整条丢弃（284 实机 skipped=3：
+        // "was NOT added to the AssemblyLine map (input validation or duplicate)"）。故这三条各补
+        // **恰好 1 种**焊接合金流体，台阶 = 144 × {8,16,32} = 1152 / 2304 / 4608 mB。
+        // 物品输入（顺序与数量）、研究物品（低一档并行核心）、输出电压与时长一律未动。
+        FluidStack solderAL16384 = Materials.SolderingAlloy.getMolten(1152);
+        FluidStack solderAL65536 = Materials.SolderingAlloy.getMolten(2304);
+        FluidStack solderAL262144 = Materials.SolderingAlloy.getMolten(4608);
         // 16384（UEV，120s，7 项）：4096x 加速器×16 + OC 103×16 + 生物电路×8 + 无限电路×16
         // + 发射器 UHV(32688)×4 + 传感器 UHV(32698)×4 + gt.blockmachines/2020×32
         // （2020 = 超导 UHV 线缆家族起始 meta，5.09.54.20 源码/字节码实证）。
@@ -969,7 +977,7 @@ public final class Recipes {
                 new OreDictItemStack("circuitBio", 8), new OreDictItemStack("circuitInfinite", 16),
                 findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
                 findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
-            new FluidStack[0],
+            new FluidStack[] { solderAL16384 },
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(16384), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -994,7 +1002,7 @@ public final class Recipes {
                 findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new OreDictItemStack("circuitBio", 16),
                 new OreDictItemStack("circuitInfinite", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
-            new FluidStack[0],
+            new FluidStack[] { solderAL65536 },
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(65536), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -1020,7 +1028,7 @@ public final class Recipes {
                 findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new OreDictItemStack("circuitOptical", 16),
                 new OreDictItemStack("circuitBio", 32), findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
-            new FluidStack[0],
+            new FluidStack[] { solderAL262144 },
             new ItemStack(RegistryEcal.PARALLEL_CORES.get(262144), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,

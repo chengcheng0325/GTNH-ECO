@@ -78,8 +78,8 @@ public final class Recipes {
         LOG.info(
             "ECO recipes registered: {} assembler + {} assembly-line (estorage: cells=27 shapeless, components/housings="
                 + "6 assembler, component chain=24 assembler/assembly-line + 2 space-assembler, parts/controllers=5 "
-                + "assembler + 1 workbench, ecalculator=6 assembler + 9 parallel cores + 6 thread cores + 3 flash "
-                + "cells + 1 workbench), skipped={}",
+                + "assembler + 1 workbench, ecalculator=6 assembler + 7 parallel cores + 3 parallel assembly-line "
+                + "+ 1 parallel space-assembler (MK-III) + 6 thread cores + 3 flash cells + 1 workbench), skipped={}",
             registeredAssemblerRecipes,
             registeredALRecipes,
             skippedRecipes);
@@ -1000,7 +1000,7 @@ public final class Recipes {
                 new Object[] { "circuitBio", 8 }, new Object[] { "circuitInfinite", 16 },
                 findItemStack("gregtech", "gt.metaitem.01", 32688, 4),
                 findItemStack("gregtech", "gt.metaitem.01", 32698, 4), gtMachineBlockStack(2020, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(1152) },
             new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(16384), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -1016,7 +1016,7 @@ public final class Recipes {
                 findItemStack("miscutils", "MU-metaitem.01", 32105, 1), new Object[] { "circuitBio", 16 },
                 new Object[] { "circuitInfinite", 32 }, findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2026, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(2304) },
             new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(65536), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,
@@ -1033,7 +1033,7 @@ public final class Recipes {
                 findItemStack("gregtech", "gt.metaitem.03", 4581, 16), new Object[] { "circuitOptical", 16 },
                 new Object[] { "circuitBio", 32 }, findItemStack("gregtech", "gt.metaitem.01", 32689, 8),
                 findItemStack("gregtech", "gt.metaitem.01", 32699, 8), gtMachineBlockStack(2054, 32) },
-            new FluidStack[0],
+            new FluidStack[] { Materials.SolderingAlloy.getMolten(4608) },
             new ItemStack(ecoaegtnh.registry.RegistryEcal.PARALLEL_CORES.get(262144), 1),
             TierEU.RECIPE_UEV,
             TierEU.RECIPE_UEV,

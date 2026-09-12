@@ -196,10 +196,17 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
     protected final int tier;
 
     /**
-     * t62: upgrade tree for the storage array — 12 nodes across three independent chains
-     * (docs/ECO_UPGRADE_TREE_DESIGN.md §3: item I1★-I4 / fluid F1★-F4 / essentia E1★-E4); cell
-     * insertion and the formation check are gated by node activation. The three-layer GUI
-     * (ids 300/301/302) is shared with the calculator host via ecoaegtnh.upgrade.UpgradeTreeGui.
+     * t62/t131: upgrade tree for the storage array — 14 nodes across three independent chains
+     * (docs/ECO_UPGRADE_TREE_DESIGN.md §3 t131 revision: item I1★-I4 / fluid F1★-F5 / essentia
+     * E1★-E5, one node per MERGED three-tier capacity group); cell insertion and the formation
+     * check are gated by node activation. The three-layer GUI (ids 300/301/302) is shared with
+     * the calculator host via ecoaegtnh.upgrade.UpgradeTreeGui.
+     * <p>
+     * ⚠ 284 divergence (plan §1.2/§6): this version deliberately has NO 20-tick stat cache layer
+     * (290b2's t127 refreshStatCacheIfStale) — the IO-LED tooltip reads the synced
+     * {@code syncItem...} / {@code syncFluid...} / {@code syncEssentia...} fields and computes
+     * {@code sumStat(...)} on demand, so the t127b sentinel-overflow fix has no object here and
+     * must NOT be "back-filled".
      */
     protected final ecoaegtnh.upgrade.UpgradeTree upgradeTree = ecoaegtnh.upgrade.StorageUpgradeTree.newInstance();
 
@@ -519,8 +526,9 @@ public class MTEEcoStorageArray extends TTMultiblockBase implements ISurvivalCon
 
         // t62: upgrade-tree gate at formation — close the pre-assembly bypass. While no
         // controller was assembled, TileEcoStorageDrive.isCellSupported() deferred the check
-        // (returned true), so an oversized cell (64M without I5/F5/E5, 16384M without I9/F9/E9,
-        // 人造宇宙 without I10/F10/E10) could be inserted before formation. Re-validate statically here (bay coordinates +
+        // (returned true), so a cell of a not-yet-unlocked MERGED GROUP (t131: e.g. 16M without
+        // I2/F2/E2, 1024M without I3/F3/E3, 人造宇宙 without I4/F4/E4) could be inserted before
+        // formation. Re-validate statically here (bay coordinates +
         // this controller's upgrade tree; the static helper does not touch the bay's controller
         // reference, preserving t55 claim independence): any bay holding a cell whose chain node
         // is not activated fails the structure check. Post-formation insertion of an unsupported

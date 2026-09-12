@@ -198,6 +198,11 @@ public final class RegistryEcal {
         registerThreadCore("4", 4, 0);
         registerThreadCore("16", 16, 0);
         // t114f (user): 32/64-thread cores join the normal chain.
+        // t131 (284, plan §6): the 290b2/290b1 line DELETED these two registrations together with
+        // the T4/T5 tree nodes. 284 is the user's LIVE save — the items may already be inserted in
+        // a thread drive or sitting in a chest, so withdrawing them would invalidate existing
+        // stacks (授权原则 ② 只增不减). They stay registered and now gate on T3 like the 16-thread
+        // core (ItemEcalThreadCore#getRequiredUpgradeNode truncates ≥16 threads onto T3).
         registerThreadCore("32", 32, 0);
         registerThreadCore("64", 64, 0);
         // t114s (user): hyper core SUPPLIED thread counts doubled — hyper_2 = 0+4,

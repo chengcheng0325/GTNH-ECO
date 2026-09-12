@@ -60,27 +60,24 @@ public class ItemEcalParallelCore extends Item {
     }
 
     /**
-     * t65 (upgrade tree, docs §2 revision): the parallel-branch node required to insert this
-     * core — 1 → P1, 4 → P2, 16 → P3, 64 → P4, 256 → P5, 1024 → P6, 4096 → P7, 16384 → P8,
-     * 65536 → P9.
+     * t65→t131 (upgrade tree, docs §2 revision): the parallel-branch node required to insert this
+     * core — one node per MERGED GROUP of three parallelism tiers (t131 284 merge, plan §3.3):
+     * ≤16 (1/4/16) → P1, ≤1024 (64/256/1024) → P2, else (4096/16384/65536 + the t130 tiers
+     * 262144/16777216) → P3.
      * <p>
-     * t130 (284): the two new tiers 262144 / 16777216 take the UNCONDITIONAL P9 fallthrough at the
-     * end of this method — every comparison is a {@code <=} chain, so nothing between 65537 and
-     * {@code Integer.MAX_VALUE} can return null (bytecode-verified: last two instructions are
-     * {@code ldc "P9"; areturn}, and the method contains no {@code aconst_null}). This version's
-     * nine-node parallel branch (P1..P9) is NOT restructured by t130 — new tiers intentionally
-     * share P9 with 65536.
+     * t130 (284) had left the two new tiers on the P9 fallthrough; t131 folds the whole nine-node
+     * ladder (P1..P9) onto P1/P2/P3 together with the new tiers, so every parallelism value from 1
+     * to {@code Integer.MAX_VALUE} still returns a node (last statement is an unconditional
+     * {@code return P3} — no null path).
      */
     public String getRequiredUpgradeNode() {
-        if (parallelism <= 1) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P1;
-        if (parallelism <= 4) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P2;
-        if (parallelism <= 16) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P3;
-        if (parallelism <= 64) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P4;
-        if (parallelism <= 256) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P5;
-        if (parallelism <= 1024) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P6;
-        if (parallelism <= 4096) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P7;
-        if (parallelism <= 16384) return ecoaegtnh.upgrade.CalculatorUpgradeTree.P8;
-        return ecoaegtnh.upgrade.CalculatorUpgradeTree.P9;
+        if (parallelism <= 16) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.P1;
+        }
+        if (parallelism <= 1024) {
+            return ecoaegtnh.upgrade.CalculatorUpgradeTree.P2;
+        }
+        return ecoaegtnh.upgrade.CalculatorUpgradeTree.P3;
     }
 
     @Override
